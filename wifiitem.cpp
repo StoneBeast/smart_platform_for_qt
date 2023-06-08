@@ -13,7 +13,7 @@ WifiItem::WifiItem(QString ssid, int ecn, int rssi, QString mac, QWidget *parent
     //this->setFixedSize(expansionSize);
     this->setAttribute(Qt::WA_StyledBackground, true);
     this->setObjectName("wifi-item");
-    this->setStyleSheet("QWidget{background-color:rgba(242, 242, 242);}"
+    this->setStyleSheet("QWidget{background-color:rgba(242, 242, 242);"
                         "border-radius:8px; border-left: solid 4px #0067c0;}"
                         );
 
