@@ -12,8 +12,9 @@ WifiItem::WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWid
 {
     this->setAttribute(Qt::WA_StyledBackground, true);
     this->setObjectName("wifi-item");
-    this->setStyleSheet("QWidget{background-color:rgba(242, 242, 242);"
-                        "border-radius:8px; border-left: solid 4px #0067c0;}"
+    this->setStyleSheet("QWidget#wifi-item{border :2px solid #d3d3e6;}"
+                        "QWidget{background-color:rgba(242, 242, 242);"
+                        "border-radius:8px;}"
                         "QWidget:hover{"
                         "background-color: #f5f5f5;"
                         "}"
@@ -125,18 +126,6 @@ QString WifiItem::getEcn(int ecn) {
 
 
 //  添加自定义clicked信号
-//void WifiItem::mouseClicked(int t)
-//{
-//    //处理代码
-//    qDebug() << "clicked! row:131";
-
-//    if (moreInfo_widget->isHidden()) {
-//        setExpansion();
-//        //this->setFixedSize(expansionSize);
-
-//    }
-//}
-
 void WifiItem::mousePressEvent(QMouseEvent *ev)
 {
     //mousePos = QPoint(ev->position().x(), ev->position().y());
@@ -145,6 +134,7 @@ void WifiItem::mousePressEvent(QMouseEvent *ev)
 
 void WifiItem::mouseReleaseEvent(QMouseEvent *ev)
 {
+    Q_UNUSED(ev)
     //if(mousePos == QPoint(ev->position().x(), ev->position().y()))
     if(mousePos == QPoint(ev->x(), ev->y())){
         qDebug() << "emit! row: 150";
@@ -155,6 +145,7 @@ void WifiItem::mouseReleaseEvent(QMouseEvent *ev)
 }
 
 void WifiItem::ctrlClickSlot() {
+    emit clickConnect(getIndex());
     qDebug() << "connect! row:155";
 }
 

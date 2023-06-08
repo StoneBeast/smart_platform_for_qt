@@ -17,12 +17,11 @@ MySlide::MySlide(QWidget *parent):
     scrollarea = new QScrollArea(this);
     scrollarea->setAlignment(Qt::AlignCenter);
     mainwidget = new QWidget(this);
-    mainwidget->setStyleSheet("backgroud:transparent"); //透明
+    mainwidget->setStyleSheet("background-color:rgba(255, 255, 255, 1)"); //透明
     scrollarea->setWidget(mainwidget);
-//    scrollarea->setStyleSheet("background:transparent");
     //底部面板（透明）水平布局，居中对齐
     bottomwidget = new QWidget(this);
-    bottomwidget->setStyleSheet("background:transparent");
+    bottomwidget->setStyleSheet("background-color:rgba(255, 255, 255, 1)");
     bottomhbl = new QHBoxLayout();
     bottomhbl->setContentsMargins(0, 0, 0, 0);
     bottomhbl->setAlignment(Qt::AlignCenter);

@@ -45,14 +45,25 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 
 
     //  添加刷新图标以及下拉框
-    flushIcon = new QPushButton(this);
-    flushIcon->setIcon(QIcon(":/icons/flushIcon.png"));
-    flushIcon->setStyleSheet("QPushButton{background: rgba(240, 240, 240, 0); border: 0;}");
-    selectArea->addWidget(flushIcon, 1);
-    iconAnimation = new QPropertyAnimation(flushIcon, "rotation");
-    iconAnimation->setStartValue(0);
+//    flushIcon = new QPushButton(this);
+//    flushIcon->setIcon(QIcon(":/icons/flushIcon.png"));
+//    flushIcon->setStyleSheet("QPushButton{background: rgba(240, 240, 240, 0); border: 0;}");
+//    selectArea->addWidget(flushIcon, 1);
+//    iconAnimation = new QPropertyAnimation(flushIcon, "rotation");
+//    iconAnimation->setStartValue(0);
+
+
+    flushLab = new ClickLabel(this);
+    flushLab->setFixedSize(25, 25);
+    QPixmap *wifiIcon = new QPixmap(":/icons/flushIcon.png");
+    *wifiIcon = wifiIcon->scaled(flushLab->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    flushLab->setPixmap(*wifiIcon);
+    flushLab->setMaximumSize(25, 25);
+    iconAnimation = new QPropertyAnimation(flushLab, "rotation");
+    selectArea->addWidget(flushLab, 1);
+
     //不起作用
-    connect(flushIcon, SIGNAL(clicked()), this, SLOT(flushSerialSlot()));
+    connect(flushLab, SIGNAL(clicked()), this, SLOT(flushSerialSlot()));
 
     serial_cb = new QComboBox();
     initSerial_cb(serial_cb);
@@ -63,11 +74,13 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     checkButton = new QPushButton("检查设备连接", this);
     checkButton->setMinimumHeight(60);
     btnArea->addWidget(checkButton);
+    connect(checkButton, SIGNAL(clicked()), this, SLOT(checkConnectionSlot()));
 
     //  添加刷新网络列表按钮
     flushButton = new QPushButton("刷新列表", this);
     flushButton->setMinimumHeight(60);
     btnArea->addWidget(flushButton);
+    connect(flushButton, SIGNAL(clicked()), this, SLOT(flushNetworkSlot()));
 
     //  将串口选择部分和按钮部分分别加入到ctrlArea中
     ctrlArea->addLayout(selectArea);
@@ -84,12 +97,10 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     mainLayout->setSpacing(30);
     mainLayout->setContentsMargins(30, 30, 30, 30);
 
-    connect(checkButton, &QPushButton::clicked, this, &VisibleNetwork::checkConnectionSlot);
-
     this->setLayout(mainLayout);
 
 
-
+//  debug
     WifiItem *item1 = new WifiItem(0, "test", 0, -21, "ac:2d:dd:41:21:as", networkList);
     WifiItem *item2 = new WifiItem(1, "hello", 3, -56, "ac:2d:dd:41:21:ad", networkList);
     WifiItem *item3 = new WifiItem(2, "world", 4, -70, "ac:2d:dd:4c:21:as", networkList);
@@ -107,26 +118,28 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     networkListLayout->addWidget(item4);
     networkListLayout->addWidget(item5);
 
-    connect(item1, SIGNAL(clicked(int)), this, SLOT(handle(int)));
-    connect(item2, SIGNAL(clicked(int)), this, SLOT(handle(int)));
-    connect(item3, SIGNAL(clicked(int)), this, SLOT(handle(int)));
-    connect(item4, SIGNAL(clicked(int)), this, SLOT(handle(int)));
-    connect(item5, SIGNAL(clicked(int)), this, SLOT(handle(int)));
+    connect(item1, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+    connect(item2, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+    connect(item3, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+    connect(item4, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+    connect(item5, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+
+
+    connect(item1, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+    connect(item2, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+    connect(item3, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+    connect(item4, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+    connect(item5, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
 }
 
 void VisibleNetwork::initSerial_cb(QComboBox *cb) {
+    if (cb->count() != 0) {
+        cb->clear();
+    }
+
     foreach (const QSerialPortInfo &info, serial->scanSerial()) {
         cb->addItem(info.portName());
     }
-}
-
-void VisibleNetwork::flushSerialSlot() {
-    qDebug() << "clicked!";
-    rollIcon(360, 300);
-}
-
-void VisibleNetwork::checkConnectionSlot() {
-    qDebug() << "clicked!";
 }
 
 void VisibleNetwork::rollIcon(int angle, int duration) {
@@ -135,7 +148,7 @@ void VisibleNetwork::rollIcon(int angle, int duration) {
     iconAnimation->start();
 }
 
-void VisibleNetwork::handle(int index) {
+void VisibleNetwork::expansionSlot(int index) {
     qDebug() << "open!!!!! row:139" << index;
     for(int i = 0; i<5; i++) {
         if (i == index) {
@@ -144,4 +157,29 @@ void VisibleNetwork::handle(int index) {
             item[i]->setFold();
         }
     }
+}
+
+void VisibleNetwork::flushSerialSlot() {
+    qDebug() << "flush serial list  row:159";
+
+//    do flush serial list
+    initSerial_cb(serial_cb);
+}
+
+void VisibleNetwork::connectSlot(int index) {
+    qDebug() << "connect!!!!! row:168" << index;
+
+    //  do connection...
+}
+
+void VisibleNetwork::checkConnectionSlot() {
+    qDebug() << "check device connection row: 170!";
+
+    //  do check connection
+}
+
+void VisibleNetwork::flushNetworkSlot() {
+    qDebug() << "flush list row: 176";
+
+    //  do flush list and instand of the old
 }

@@ -42,6 +42,7 @@ private slots:
 
 signals:
     void clicked(int index);
+    void clickConnect(int index);
 
 protected:
     void mousePressEvent(QMouseEvent *ev);
