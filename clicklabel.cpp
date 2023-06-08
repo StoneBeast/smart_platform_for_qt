@@ -10,16 +10,21 @@ ClickLabel::ClickLabel(QWidget *parent)
 
 void ClickLabel::mousePressEvent(QMouseEvent *ev)
 {
-    //mousePos = QPoint(ev->position().x(), ev->position().y());
+#ifdef Q_OS_WIN
+    mousePos = QPoint(ev->position().x(), ev->position().y());
+#else
     mousePos = QPoint(ev->x(), ev->y());
+#endif
 }
 
 void ClickLabel::mouseReleaseEvent(QMouseEvent *ev)
 {
     Q_UNUSED(ev)
-    //if(mousePos == QPoint(ev->position().x(), ev->position().y()))
+#ifdef Q_OS_WIN
+    if(mousePos == QPoint(ev->position().x(), ev->position().y())){
+#else
     if(mousePos == QPoint(ev->x(), ev->y())){
-
+#endif
         emit clicked();
     }
 

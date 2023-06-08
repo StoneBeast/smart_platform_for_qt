@@ -6,7 +6,7 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     this->resize(800, 480);
     this->setMinimumSize(800, 480);
     this->setObjectName("main-page");
-    this->setStyleSheet("QWidget#main-page{backgroung-color: #f3f3f3;}");
+    this->setStyleSheet("QWidget#main-page{background-color: #f3f3f3;}");
 
     //  创建串口对象
     serial = new SerialUtil();
@@ -30,10 +30,6 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 
     //  添加网络信息组件
     netWorkInfo = new QLabel(this);
-    netWorkInfo->setStyleSheet("QLabel{background:rgb(255, 255, 255); "
-                               "border: 1px #e7e7f1 solid; "
-                               "border-radius:8px"
-                               "}");
     QVBoxLayout *infoLayout = new QVBoxLayout(this);
     netWorkInfo->setLayout(infoLayout);
     infoLayout->addWidget(new QLabel("网络名称:"));
@@ -41,6 +37,11 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     infoLayout->addWidget(new QLabel("信号强度:"));
     infoLayout->addWidget(new QLabel("加密格式:"));
     infoLayout->addWidget(new QLabel("是否连接互联网:"));
+    netWorkInfo->setObjectName("network-info");
+    netWorkInfo->setStyleSheet("QLabel#network-info{background:rgb(255, 255, 255); "
+                               "border: 1px #e7e7f1 solid;"
+                               "border-radius: 8px;"
+                               "}");
     rightBox->addWidget(netWorkInfo);
 
     //  下方控制区域使用垂直布局
@@ -50,24 +51,16 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 
 
     //  添加刷新图标以及下拉框
-//    flushIcon = new QPushButton(this);
-//    flushIcon->setIcon(QIcon(":/icons/flushIcon.png"));
-//    flushIcon->setStyleSheet("QPushButton{background: rgba(240, 240, 240, 0); border: 0;}");
-//    selectArea->addWidget(flushIcon, 1);
-//    iconAnimation = new QPropertyAnimation(flushIcon, "rotation");
-//    iconAnimation->setStartValue(0);
-
-
     flushLab = new ClickLabel(this);
     flushLab->setFixedSize(25, 25);
     QPixmap *wifiIcon = new QPixmap(":/icons/flushIcon.png");
     *wifiIcon = wifiIcon->scaled(flushLab->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     flushLab->setPixmap(*wifiIcon);
     flushLab->setMaximumSize(25, 25);
-    iconAnimation = new QPropertyAnimation(flushLab, "rotation");
+
+
     selectArea->addWidget(flushLab, 1);
 
-    //不起作用
     connect(flushLab, SIGNAL(clicked()), this, SLOT(flushSerialSlot()));
 
     serial_cb = new QComboBox();
@@ -145,6 +138,12 @@ void VisibleNetwork::initSerial_cb(QComboBox *cb) {
     foreach (const QSerialPortInfo &info, serial->scanSerial()) {
         cb->addItem(info.portName());
     }
+
+    if (cb->count() == 0) {
+        cb->setPlaceholderText("空");
+    } else {
+        cb->setPlaceholderText(nullptr);
+    }
 }
 
 void VisibleNetwork::rollIcon(int angle, int duration) {
@@ -169,22 +168,41 @@ void VisibleNetwork::flushSerialSlot() {
 
 //    do flush serial list
     initSerial_cb(serial_cb);
+//  尝试添加旋转动画
 }
 
 void VisibleNetwork::connectSlot(int index) {
     qDebug() << "connect!!!!! row:168" << index;
 
     //  do connection...
+    /*
+     * 基本实现思路：通过串口发送约定好的数据，连接
+     * 添加连接成功信号，在对应的槽函数中填写 network into中的相关信息
+     * 同时wifiitem上的连接按钮变为断开连接
+     */
 }
 
 void VisibleNetwork::checkConnectionSlot() {
     qDebug() << "check device connection row: 170!";
 
     //  do check connection
+    /*
+     *
+     * 基本实现思路：
+     *  将检查设备是否正确连接以及设备是否连接网络两个功能合起来，
+     *  如果按照一定格式返回，则是连接成功，如果返回的信息中指出设备已经连接
+     *  则判定为设备已经连接网络
+     *      然后向设备发送命令，获取网络环境信息，更新 network list
+     *      然后再获取设备连接的网络的信息，然后修改wifiitem上的链接按钮
+     */
 }
 
 void VisibleNetwork::flushNetworkSlot() {
     qDebug() << "flush list row: 176";
 
     //  do flush list and instand of the old
+    /*
+     *  刷新network list，但是这个函数只有在设备已经正确连接之后才可以被调用
+     *  如果设备没有正确连接，点击这个按钮则弹出相关提示。
+     */
 }

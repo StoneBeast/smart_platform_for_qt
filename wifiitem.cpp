@@ -13,7 +13,7 @@ WifiItem::WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWid
     this->setAttribute(Qt::WA_StyledBackground, true);
     this->setObjectName("wifi-item");
     this->setStyleSheet("QWidget#wifi-item{border :2px solid #d3d3e6;}"
-                        "QWidget{background-color:rgba(242, 242, 242);"
+                        "QWidget{background-color:rgb(242, 242, 242);"
                         "border-radius:8px;}"
                         "QWidget:hover{"
                         "background-color: #f5f5f5;"
@@ -73,7 +73,7 @@ WifiItem::WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWid
                                   "background-color: #fbfbfb"
                               "}"
                               "QPushButton#ctrl-button:hover{"
-                                  "background-color: rgba(242, 242, 242);"
+                                  "background-color: rgb(242, 242, 242);"
                               "}"
                               "QPushButton#ctrl-button:pressed{"
                                   "background-color: #b2b0b3;"
