@@ -14,18 +14,19 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 
     //  设置网络列表组件
     networkList = new QWidget(this);
-    QVBoxLayout *networkListLayout = new QVBoxLayout();
+    QVBoxLayout *networkListLayout = new QVBoxLayout(networkList);
+    networkListLayout->setAlignment(Qt::AlignTop);
     networkList->setLayout(networkListLayout);
-    networkList->setStyleSheet("QWidget {background:rgb(255, 255, 255);}");
+    networkList->setStyleSheet("QWidget {background:rgb(251, 251, 251);}");
     mainLayout->addWidget(networkList, 5);
 
     //  设置右侧区域布局
-    QVBoxLayout *rightBox = new QVBoxLayout();
+    QVBoxLayout *rightBox = new QVBoxLayout(this);
 
     //  添加网络信息组件
-    netWorkInfo = new QLabel();
+    netWorkInfo = new QLabel(this);
     netWorkInfo->setStyleSheet("QLabel{background:rgb(255, 255, 255); }");
-    QVBoxLayout *infoLayout = new QVBoxLayout();
+    QVBoxLayout *infoLayout = new QVBoxLayout(this);
     netWorkInfo->setLayout(infoLayout);
     infoLayout->addWidget(new QLabel("网络名称:"));
     infoLayout->addWidget(new QLabel("IP地址:"));
@@ -35,9 +36,9 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     rightBox->addWidget(netWorkInfo);
 
     //  下方控制区域使用垂直布局
-    QVBoxLayout *ctrlArea = new QVBoxLayout();
-    QHBoxLayout *selectArea = new QHBoxLayout();
-    QHBoxLayout *btnArea = new QHBoxLayout();
+    QVBoxLayout *ctrlArea = new QVBoxLayout(this);
+    QHBoxLayout *selectArea = new QHBoxLayout(this);
+    QHBoxLayout *btnArea = new QHBoxLayout(this);
 
 
     //  添加刷新图标以及下拉框
@@ -80,14 +81,12 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     mainLayout->setSpacing(30);
     mainLayout->setContentsMargins(30, 30, 30, 30);
 
-     connect(checkButton, &QPushButton::clicked, this, &VisibleNetwork::checkConnectionSlot);
+    connect(checkButton, &QPushButton::clicked, this, &VisibleNetwork::checkConnectionSlot);
 
     this->setLayout(mainLayout);
 
-    WifiItem *item = new WifiItem("test", 0, -21, "ac:2d:dd:41:21:as");
-    //qDebug() << networkList->size().height() << networkList->size().width();
-    item->setMaximumSize(500, 100);
-    //item->setStyleSheet("background-color: rgb(125, 155, 155);");
+
+    WifiItem *item = new WifiItem("test", 0, -21, "ac:2d:dd:41:21:as", networkList);
 
     networkListLayout->addWidget(item);
 }

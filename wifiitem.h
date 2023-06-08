@@ -8,6 +8,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QDebug>
+#include <QMouseEvent>
 
 
 class WifiItem : public QWidget
@@ -16,6 +17,8 @@ class WifiItem : public QWidget
 public:
     explicit WifiItem(QWidget *parent = nullptr);
     explicit WifiItem(QString ssid, int ecn, int rssi, QString mac, QWidget *parent = nullptr);
+    QPoint mousePos;
+    QWidget *moreInfo_widget;
 
 private:
     QString ssid;   // ssid
@@ -26,6 +29,21 @@ private:
     QPushButton conButton;  //连接按钮
     QString setWifiIcon(int ecn, int rssi);
     QString getEcn(int ecn);
+    QSize foldSize;
+    QSize expansionSize;
+
+private slots:
+    void mouseClicked();
+    void ctrlClickSlot();
+
+
+signals:
+    void clicked();
+
+protected:
+    void mousePressEvent(QMouseEvent *ev);
+    void mouseReleaseEvent(QMouseEvent *ev);
+
 
 signals:
 
