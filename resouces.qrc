@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/icon1.png</file>
+        <file>icons/icon2.png</file>
+        <file>icons/flushIcon.png</file>
+        <file>icons/Lwifi1.png</file>
+        <file>icons/Lwifi2.png</file>
+        <file>icons/Lwifi3.png</file>
+        <file>icons/Lwifi4.png</file>
+        <file>icons/Lwifi5.png</file>
+        <file>icons/wifi1.png</file>
+        <file>icons/wifi2.png</file>
+        <file>icons/wifi3.png</file>
+        <file>icons/wifi4.png</file>
+        <file>icons/wifi5.png</file>
+    </qresource>
+</RCC>
