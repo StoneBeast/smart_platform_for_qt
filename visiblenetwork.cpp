@@ -5,6 +5,8 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 {
     this->resize(800, 480);
     this->setMinimumSize(800, 480);
+    this->setObjectName("main-page");
+    this->setStyleSheet("QWidget#main-page{backgroung-color: #f3f3f3;}");
 
     //  创建串口对象
     serial = new SerialUtil();
@@ -28,7 +30,10 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 
     //  添加网络信息组件
     netWorkInfo = new QLabel(this);
-    netWorkInfo->setStyleSheet("QLabel{background:rgb(255, 255, 255); }");
+    netWorkInfo->setStyleSheet("QLabel{background:rgb(255, 255, 255); "
+                               "border: 1px #e7e7f1 solid; "
+                               "border-radius:8px"
+                               "}");
     QVBoxLayout *infoLayout = new QVBoxLayout(this);
     netWorkInfo->setLayout(infoLayout);
     infoLayout->addWidget(new QLabel("网络名称:"));
