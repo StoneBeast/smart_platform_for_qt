@@ -13,12 +13,15 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     QHBoxLayout *mainLayout = new QHBoxLayout(this);
 
     //  设置网络列表组件
+    scrollArea = new QScrollArea();
+    scrollArea->setWidgetResizable(true);
     networkList = new QWidget(this);
     QVBoxLayout *networkListLayout = new QVBoxLayout(networkList);
     networkListLayout->setAlignment(Qt::AlignTop);
     networkList->setLayout(networkListLayout);
     networkList->setStyleSheet("QWidget {background:rgb(251, 251, 251);}");
-    mainLayout->addWidget(networkList, 5);
+    scrollArea->setWidget(networkList);
+    mainLayout->addWidget(scrollArea, 5);
 
     //  设置右侧区域布局
     QVBoxLayout *rightBox = new QVBoxLayout(this);
@@ -86,9 +89,29 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     this->setLayout(mainLayout);
 
 
-    WifiItem *item = new WifiItem("test", 0, -21, "ac:2d:dd:41:21:as", networkList);
 
-    networkListLayout->addWidget(item);
+    WifiItem *item1 = new WifiItem(0, "test", 0, -21, "ac:2d:dd:41:21:as", networkList);
+    WifiItem *item2 = new WifiItem(1, "hello", 3, -56, "ac:2d:dd:41:21:ad", networkList);
+    WifiItem *item3 = new WifiItem(2, "world", 4, -70, "ac:2d:dd:4c:21:as", networkList);
+    WifiItem *item4 = new WifiItem(3, "azur", 3, -10, "ac:2d:d3:41:21:as", networkList);
+    WifiItem *item5 = new WifiItem(4, "lane", 0, -45, "ac:22:dd:41:21:as", networkList);
+    item[0] = item1;
+    item[1] = item2;
+    item[2] = item3;
+    item[3] = item4;
+    item[4] = item5;
+
+    networkListLayout->addWidget(item1);
+    networkListLayout->addWidget(item2);
+    networkListLayout->addWidget(item3);
+    networkListLayout->addWidget(item4);
+    networkListLayout->addWidget(item5);
+
+    connect(item1, SIGNAL(clicked(int)), this, SLOT(handle(int)));
+    connect(item2, SIGNAL(clicked(int)), this, SLOT(handle(int)));
+    connect(item3, SIGNAL(clicked(int)), this, SLOT(handle(int)));
+    connect(item4, SIGNAL(clicked(int)), this, SLOT(handle(int)));
+    connect(item5, SIGNAL(clicked(int)), this, SLOT(handle(int)));
 }
 
 void VisibleNetwork::initSerial_cb(QComboBox *cb) {
@@ -110,4 +133,15 @@ void VisibleNetwork::rollIcon(int angle, int duration) {
     iconAnimation->setEndValue(angle);
     iconAnimation->setDuration(duration);
     iconAnimation->start();
+}
+
+void VisibleNetwork::handle(int index) {
+    qDebug() << "open!!!!! row:139" << index;
+    for(int i = 0; i<5; i++) {
+        if (i == index) {
+            item[i]->setExpansion();
+        } else {
+            item[i]->setFold();
+        }
+    }
 }

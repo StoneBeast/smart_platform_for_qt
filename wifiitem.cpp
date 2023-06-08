@@ -6,15 +6,17 @@ WifiItem::WifiItem(QWidget *parent)
 
 }
 
-WifiItem::WifiItem(QString ssid, int ecn, int rssi, QString mac, QWidget *parent)
-    : QWidget{parent}, ssid(ssid), ecn(ecn), rssi(rssi),
+WifiItem::WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWidget *parent)
+    : QWidget{parent}, index(index), ssid(ssid), ecn(ecn), rssi(rssi),
       mac(mac)
 {
-    //this->setFixedSize(expansionSize);
     this->setAttribute(Qt::WA_StyledBackground, true);
     this->setObjectName("wifi-item");
     this->setStyleSheet("QWidget{background-color:rgba(242, 242, 242);"
                         "border-radius:8px; border-left: solid 4px #0067c0;}"
+                        "QWidget:hover{"
+                        "background-color: #f5f5f5;"
+                        "}"
                         );
 
     QVBoxLayout *main_layout = new QVBoxLayout(this);     //  main layout
@@ -31,6 +33,8 @@ WifiItem::WifiItem(QString ssid, int ecn, int rssi, QString mac, QWidget *parent
     QPixmap *wifiIcon = new QPixmap(setWifiIcon(ecn, rssi));
     *wifiIcon = wifiIcon->scaled(wifiIconLab->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     wifiIconLab->setPixmap(*wifiIcon);
+    wifiIconLab->setObjectName("wifi-icon-lab");
+    wifiIconLab->setStyleSheet("QLabel#wifi-icon-lab{background-color: rgba(255,255,255,0)}");
     wifiIconLab->setMaximumSize(30, 30);
     title_layout->addWidget(wifiIconLab);
 
@@ -40,6 +44,8 @@ WifiItem::WifiItem(QString ssid, int ecn, int rssi, QString mac, QWidget *parent
     id_font->setPixelSize(18);
     id_font->setBold(true);
     wifiSSID->setFont(*id_font);
+    wifiSSID->setObjectName("wifi-ssid");
+    wifiSSID->setStyleSheet("QLabel#wifi-ssid{background-color: rgba(255,255,255,0)}");
     title_layout->addWidget(wifiSSID);
 
     main_layout->addLayout(title_layout);
@@ -48,7 +54,7 @@ WifiItem::WifiItem(QString ssid, int ecn, int rssi, QString mac, QWidget *parent
     QLabel *statusLabel = new QLabel(getEcn(ecn) + "\t" + "MAC: "+mac);
     QFont *s_font = new QFont();
     statusLabel->setObjectName("status-label");
-    statusLabel->setStyleSheet("QLabel#status-label{color: #616161; margin-left: 30px}");
+    statusLabel->setStyleSheet("QLabel#status-label{color: #616161; margin-left: 30px; background-color:rgba(255,255,255,0);}");
     s_font->setPixelSize(12);
     statusLabel->setFont(*s_font);
 
@@ -79,13 +85,14 @@ WifiItem::WifiItem(QString ssid, int ecn, int rssi, QString mac, QWidget *parent
     connect(ctrlButton, SIGNAL(clicked()), this, SLOT(ctrlClickSlot()));
 
     moreInfo_widget->setLayout(moreInfo_layout);
+    moreInfo_widget->setObjectName("more-info");
+    moreInfo_widget->setStyleSheet("QWidget#more-info{background-color: rgba(255, 255, 255, 0)}");
     main_layout->addWidget(moreInfo_widget);
 
     moreInfo_widget->setHidden(true);
-    //this->setFixedSize(foldSize);
 
     this->setLayout(main_layout);
-    connect(this, SIGNAL(clicked()), this, SLOT(mouseClicked()));
+    //connect(this, SIGNAL(clicked(int)), this, SLOT(mouseClicked(int)));
 }
 
 QString WifiItem::setWifiIcon(int ecn, int rssi) {
@@ -118,17 +125,17 @@ QString WifiItem::getEcn(int ecn) {
 
 
 //  添加自定义clicked信号
-void WifiItem::mouseClicked()
-{
-    //处理代码
-    qDebug() << "clicked!";
+//void WifiItem::mouseClicked(int t)
+//{
+//    //处理代码
+//    qDebug() << "clicked! row:131";
 
-    if (moreInfo_widget->isHidden()) {
-        setExpansion();
-        //this->setFixedSize(expansionSize);
+//    if (moreInfo_widget->isHidden()) {
+//        setExpansion();
+//        //this->setFixedSize(expansionSize);
 
-    }
-}
+//    }
+//}
 
 void WifiItem::mousePressEvent(QMouseEvent *ev)
 {
@@ -139,13 +146,16 @@ void WifiItem::mousePressEvent(QMouseEvent *ev)
 void WifiItem::mouseReleaseEvent(QMouseEvent *ev)
 {
     //if(mousePos == QPoint(ev->position().x(), ev->position().y()))
-    if(mousePos == QPoint(ev->x(), ev->y()))
-        emit clicked();
+    if(mousePos == QPoint(ev->x(), ev->y())){
+        qDebug() << "emit! row: 150";
+        emit clicked(getIndex());
+    }
+
 
 }
 
 void WifiItem::ctrlClickSlot() {
-    qDebug() << "connect!";
+    qDebug() << "connect! row:155";
 }
 
 void WifiItem::setFold() {
@@ -155,4 +165,8 @@ void WifiItem::setFold() {
 
 void WifiItem::setExpansion() {
     moreInfo_widget->setHidden(false);
+}
+
+int WifiItem::getIndex() {
+    return index;
 }

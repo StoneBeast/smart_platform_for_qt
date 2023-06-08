@@ -14,6 +14,7 @@
 #include <QPropertyAnimation>
 #include "wifiitem.h"
 #include <QDebug>
+#include <QScrollArea>
 
 class VisibleNetwork : public QWidget
 {
@@ -22,6 +23,7 @@ class VisibleNetwork : public QWidget
 public:
     explicit VisibleNetwork(QWidget *parent = nullptr);
 
+    QScrollArea *scrollArea;
     QWidget *networkList;   //  网络列表控件
     QLabel *netWorkInfo;        //  显示网络信息
     QPushButton *checkButton;   //  检测连接按钮
@@ -30,6 +32,7 @@ public:
     QComboBox *serial_cb;       //  选择串口的下拉框
     QPushButton *flushIcon;     //  刷新图标
     QPropertyAnimation *iconAnimation;   //  刷新图标动画
+    WifiItem *item[5];
 
 
 private:
@@ -41,6 +44,7 @@ private:
 private slots:
     void flushSerialSlot();
     void checkConnectionSlot();
+    void handle(int index);
 //    void flushListSlot();
 };
 

@@ -16,13 +16,15 @@ class WifiItem : public QWidget
     Q_OBJECT
 public:
     explicit WifiItem(QWidget *parent = nullptr);
-    explicit WifiItem(QString ssid, int ecn, int rssi, QString mac, QWidget *parent = nullptr);
+    explicit WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWidget *parent = nullptr);
     QPoint mousePos;
     QWidget *moreInfo_widget;
     void setFold();
     void setExpansion();
+    int getIndex();
 
 private:
+    int index;      //index
     QString ssid;   // ssid
     int ecn;         // 加密格式
     int rssi;       //  信号强度
@@ -31,16 +33,15 @@ private:
     QPushButton conButton;  //连接按钮
     QString setWifiIcon(int ecn, int rssi);
     QString getEcn(int ecn);
-//    QSize foldSize;
-//    QSize expansionSize;
+
 
 private slots:
-    void mouseClicked();
+    //void mouseClicked();
     void ctrlClickSlot();
 
 
 signals:
-    void clicked();
+    void clicked(int index);
 
 protected:
     void mousePressEvent(QMouseEvent *ev);
