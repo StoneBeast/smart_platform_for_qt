@@ -128,15 +128,22 @@ QString WifiItem::getEcn(int ecn) {
 //  添加自定义clicked信号
 void WifiItem::mousePressEvent(QMouseEvent *ev)
 {
+#ifdef Q_OS_WIN
     mousePos = QPoint(ev->position().x(), ev->position().y());
-    //mousePos = QPoint(ev->x(), ev->y());
+#else
+    mousePos = QPoint(ev->x(), ev->y());
+#endif
 }
 
 void WifiItem::mouseReleaseEvent(QMouseEvent *ev)
 {
     Q_UNUSED(ev)
+
+#ifdef Q_OS_WIN
     if(mousePos == QPoint(ev->position().x(), ev->position().y())){
-    //if(mousePos == QPoint(ev->x(), ev->y())){
+#else  //Q_OS_WIN
+    if(mousePos == QPoint(ev->x(), ev->y())){
+#endif //Q_OS_WIN
         qDebug() << "emit! row: 150";
         emit clicked(getIndex());
     }
