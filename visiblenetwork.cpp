@@ -18,10 +18,11 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     scrollArea = new QScrollArea();
     scrollArea->setWidgetResizable(true);
     networkList = new QWidget(this);
+    networkList->setObjectName("network-list");
     QVBoxLayout *networkListLayout = new QVBoxLayout(networkList);
     networkListLayout->setAlignment(Qt::AlignTop);
     networkList->setLayout(networkListLayout);
-    networkList->setStyleSheet("QWidget {background:rgb(251, 251, 251);}");
+    networkList->setStyleSheet("QWidget#network-list {background:rgb(251, 251, 251);}");
     scrollArea->setWidget(networkList);
     mainLayout->addWidget(scrollArea, 5);
 
@@ -144,9 +145,17 @@ void VisibleNetwork::initSerial_cb(QComboBox *cb) {
 
     //  没有可用串口时，使用 ‘空’占位，否则则删除
     if (cb->count() == 0) {
+#ifdef Q_OS_WIN
         cb->setPlaceholderText("空");
+#else
+        cb->setCurrentText("choose");
+#endif
     } else {
+#ifdef Q_OS_WIN
         cb->setPlaceholderText(nullptr);
+#else
+        cb->setCurrentText(nullptr);
+#endif
     }
 }
 
@@ -170,6 +179,12 @@ void VisibleNetwork::expansionSlot(int index) {
 void VisibleNetwork::flushSerialSlot() {
     qDebug() << "flush serial list  row:159";
 
+    QPropertyAnimation *animation = new QPropertyAnimation(flushLab, "rotation");
+    animation->setDuration(4000);
+    animation->setStartValue(0);
+    animation->setEndValue(360);
+    animation->setLoopCount(-1); //旋转次数
+    animation->start(QAbstractAnimation::KeepWhenStopped);
 //    do flush serial list
     initSerial_cb(serial_cb);
 //  尝试添加旋转动画
