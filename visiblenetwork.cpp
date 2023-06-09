@@ -130,15 +130,19 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     connect(item5, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
 }
 
+//  初始化/刷新串口列表
 void VisibleNetwork::initSerial_cb(QComboBox *cb) {
+    //  如果不是空，则先清除cb中的所有选项
     if (cb->count() != 0) {
         cb->clear();
     }
 
+    //  将所有串口加入到cb中
     foreach (const QSerialPortInfo &info, serial->scanSerial()) {
         cb->addItem(info.portName());
     }
 
+    //  没有可用串口时，使用 ‘空’占位，否则则删除
     if (cb->count() == 0) {
         cb->setPlaceholderText("空");
     } else {

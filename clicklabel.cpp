@@ -2,8 +2,13 @@
 
 
 ClickLabel::ClickLabel(QWidget *parent)
-    :QLabel (new QLabel(parent))
+    :QLabel (parent)
 {
+    /*
+     *  这里遇到一个问题：
+     *      在编译时报错说没有提供相应的虚函数，但是在提供后仍然报错
+     *      后来发现可能是qt自己的bug，重启了qmake之后九过了编译
+     */
     qDebug() << "create";
 }
 

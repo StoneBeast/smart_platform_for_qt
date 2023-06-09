@@ -93,9 +93,9 @@ WifiItem::WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWid
     moreInfo_widget->setHidden(true);
 
     this->setLayout(main_layout);
-    //connect(this, SIGNAL(clicked(int)), this, SLOT(mouseClicked(int)));
 }
 
+//  根据加密情况以及信号强度，获取相应icon的文件名
 QString WifiItem::setWifiIcon(int ecn, int rssi) {
     QString iconName = ":/icons/";
 
@@ -105,6 +105,8 @@ QString WifiItem::setWifiIcon(int ecn, int rssi) {
     iconName += "wifi";
 
     //  rssi: [-100, 40] -> [-100, 0]
+    //  rssi的范围是 -100到40，但是在实际测试中没有遇到过大于 -20和低于-80的
+    //  情况，所以这里把范围人为调整为 -100到0
     rssi += 100;    //easy to compute
     iconName += QString::number(rssi/20+1);
     iconName +=".png";
@@ -156,7 +158,6 @@ void WifiItem::ctrlClickSlot() {
 
 void WifiItem::setFold() {
     moreInfo_widget->setHidden(true);
-
 }
 
 void WifiItem::setExpansion() {
