@@ -53,13 +53,13 @@ void Weather::indexchangedslot(int index) {
     //获取实时天气信息
     QString now = NOW;
     QString nowurl = now.arg(pynames[index]);    //格式化url字串加入城市
-    qDebug() << "now url: " << nowurl;
+    qDebug() <<__FILE__ << __LINE__  << "now url: " << nowurl;
     QNetworkReply *reply = getRequest(nowurl);
     connect(reply, &QNetworkReply::readyRead, this, &Weather::nowreadslot);
     //获取每日天气信息
     QString daily = DAILY;
     QString dailyurl = daily.arg(pynames[index]);//格式化url字串加入城市
-    qDebug() << "daily url: " << dailyurl;
+    qDebug() <<__FILE__ << __LINE__ << "daily url: " << dailyurl;
     QNetworkReply *rep = getRequest(dailyurl);
     connect(rep, &QNetworkReply::readyRead, this, &Weather::dailyreadslot);
 }
@@ -89,7 +89,7 @@ void Weather::nowreadslot() {
     QJsonParseError jperr;
     QJsonDocument jdoc = QJsonDocument::fromJson(data.toUtf8(), &jperr);
     if(jperr.error != QJsonParseError::NoError) {
-        qDebug() << jperr.errorString();
+        qDebug() <<__FILE__ << __LINE__  <<jperr.errorString();
         return;
     }
     QJsonObject jobject = jdoc.object();
@@ -113,7 +113,7 @@ void Weather::dailyreadslot() {
     QJsonParseError jperr;
     QJsonDocument jdoc = QJsonDocument::fromJson(data.toUtf8(), &jperr);
     if(jperr.error != QJsonParseError::NoError) {
-        qDebug() << jperr.errorString();
+        qDebug() <<__FILE__ << __LINE__  << jperr.errorString();
         return;
     }
     QJsonObject jobject = jdoc.object();

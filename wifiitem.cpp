@@ -66,7 +66,7 @@ WifiItem::WifiItem(int index, WifiObj obj, QWidget *parent)
     moreInfo_layout->addLayout(status_layout);
 
     //  add button area
-    QPushButton *ctrlButton = new QPushButton("连接");
+    ctrlButton = new QPushButton("连接");
     ctrlButton->setAttribute(Qt::WA_StyledBackground, false);
     ctrlButton->setObjectName("ctrl-button");
     ctrlButton->setFixedSize(130, 30);
@@ -98,6 +98,12 @@ WifiItem::WifiItem(int index, WifiObj obj, QWidget *parent)
     this->setLayout(main_layout);
 }
 
+WifiItem::~WifiItem() {
+    delete ctrlButton;
+    delete moreInfo_widget;
+    qDeleteAll(children());
+}
+
 //  根据加密情况以及信号强度，获取相应icon的文件名
 QString WifiItem::setWifiIcon(int ecn, int rssi) {
     QString iconName = ":/icons/";
@@ -107,10 +113,10 @@ QString WifiItem::setWifiIcon(int ecn, int rssi) {
     }
     iconName += "wifi";
 
-    //  rssi: [-100, 40] -> [-100, 0]
+    //  rssi: [-100, 40] -> [-100, 0] -> [0, 100]
     //  rssi的范围是 -100到40，但是在实际测试中没有遇到过大于 -20和低于-80的
     //  情况，所以这里把范围人为调整为 -100到0
-    rssi += 100;    //easy to compute
+    //  rssi += 100;    //easy to compute
     iconName += QString::number(rssi/20+1);
     iconName +=".png";
 
@@ -149,14 +155,14 @@ void WifiItem::mouseReleaseEvent(QMouseEvent *ev)
 #else  //Q_OS_WIN
     if(mousePos == QPoint(ev->x(), ev->y())){
 #endif //Q_OS_WIN
-        qDebug() << "emit! row: 150";
+        qDebug() <<__FILE__ << __LINE__ << "emit! ";
         emit clicked(getIndex());
     }
 }
 
 void WifiItem::ctrlClickSlot() {
     emit clickConnect(this->getButtonText(), getIndex());
-    qDebug()  << this->getButtonText() << " row:155";
+    qDebug()<<__FILE__ << __LINE__   << this->getButtonText() << " row:155";
 }
 
 void WifiItem::setFold() {

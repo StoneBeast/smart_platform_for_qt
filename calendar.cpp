@@ -39,7 +39,7 @@ void Calendar::ontimeoutslot() {
     number->display(time.toString("HH:mm:ss"));
 }
 void Calendar::selectchangedslot() {
-    qDebug() << "Date Selected: " << calendar->selectedDate().toString();
+    qDebug() <<__FILE__ << __LINE__ << "Date Selected: " << calendar->selectedDate().toString();
 }
 
 //void Calendar::resizeEvent(QResizeEvent *event)

@@ -93,7 +93,7 @@ void MySlide::resizeEvent(QResizeEvent *ev) {
     Q_UNUSED(ev)
     scrollarea->resize(this->size());
     mainwidget->resize(this->width()*pagecount, this->height()-4);
-    if(pagecount == 0) qDebug() << "当前页面总数0";
+    if(pagecount == 0) qDebug() <<__FILE__ << __LINE__ << "当前页面总数0";
     else               onCurrentPageIndexChanged(0);
     bottomwidget->setGeometry(0, this->height()-20, this->width(), 20);
 }

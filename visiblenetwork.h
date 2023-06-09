@@ -16,10 +16,9 @@
 #include <QDebug>
 #include <QScrollArea>
 #include "clicklabel.h"
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 #include <QTimer>
+
+#define DEBUG 1
 
 class VisibleNetwork : public QWidget
 {
@@ -49,9 +48,17 @@ public:
     QString mac;
     QTimer *timer;
 
-    QJsonArray wifiArray;
-    QList<WifiObj> wifiItemList;
+    QList<WifiObj> wifiObjList;
 
+    /*
+"isConnection": "true",
+     *          "ip"   : "192.168.1.1",
+     *          "mac"  :  "ad:22:42:54:ad"
+     *          "isInternet": "false"
+*/
+
+    enum WifiItemArgIndex { SSID, ECN, RSSI, MAC };
+    enum NetworkInfoIndex {IS_CONNECTION, IP, INFO_MAC, IS_INTERNTER};
 
 private:   
     void initNetworkList(); //  初始化网络连接列表
@@ -66,7 +73,7 @@ private slots:
     void flushSerialSlot();         //  flush icon
     void checkConnectionSlot();     //  check button
     void expansionSlot(int index);  //  expansion
-    void connectSlot(int index);    //  connection button
+    void connectSlot(QString text, int index);    //  connection button
     void flushNetworkSlot();        //  flush list button
     void readyReadSlot();
     void timeoutSlot();

@@ -18,15 +18,15 @@ class WifiItem : public QWidget
 
 public:
     explicit WifiItem(QWidget *parent = nullptr);
-    // WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWidget *parent = nullptr);
     WifiItem(int index, WifiObj obj, QWidget *parent = nullptr);
+    ~WifiItem();
     QPoint mousePos;
     QWidget *moreInfo_widget;
     void setFold();
     void setExpansion();
     int getIndex();
-    void setButtonText(QString text) { conButton.setText(text); }
-    QString getButtonText() { return conButton.text(); }
+    void setButtonText(QString text) { ctrlButton->setText(text); }
+    QString getButtonText() { return ctrlButton->text(); }
 
 private:
     int index;      //index
@@ -35,13 +35,12 @@ private:
     int rssi;       //  信号强度
     QString mac;        //  mac地址
     QIcon rssiIcon; //  信号强度图标
-    QPushButton conButton;  //连接按钮
     QString setWifiIcon(int ecn, int rssi);
     QString getEcn(int ecn);
+    QPushButton *ctrlButton;  //连接按钮
 
 
 private slots:
-    //void mouseClicked();
     void ctrlClickSlot();
 
 

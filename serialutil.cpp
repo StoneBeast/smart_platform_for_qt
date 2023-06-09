@@ -33,10 +33,10 @@ bool SerialUtil::openSerial(QString portName) {
     this->initSerial(portName);
 
     if(!this->open(QIODevice::ReadWrite)) {
-
+        qDebug() << __FILE__ << __LINE__ << "cannt open serial";
         return false;
     } else {
-
+        qDebug() << __FILE__ << __LINE__ << "open serial";
         return true;
     }
 }
