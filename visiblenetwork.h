@@ -16,6 +16,9 @@
 #include <QDebug>
 #include <QScrollArea>
 #include "clicklabel.h"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 class VisibleNetwork : public QWidget
 {
@@ -31,10 +34,11 @@ public:
     QPushButton *flushButton;   //  刷新网络列表按钮
     SerialUtil *serial;         //  串口成员
     QComboBox *serial_cb;       //  选择串口的下拉框
-    //QPushButton *flushIcon;     //  刷新图标
     ClickLabel *flushLab;
     QPropertyAnimation *iconAnimation;   //  刷新图标动画
+    QList <WifiItem> wifiItemList;
     WifiItem *item[5];
+    QVBoxLayout *networkListLayout;
 
 
 private:
@@ -42,6 +46,10 @@ private:
     void initSerial_cb(QComboBox *cb);  //  初始化串口选择下拉框
     void rollIcon(int angle, int duration); //  旋转图标
     void initNetInfo(); //  初始化网络信息
+    void parseResult(QString result);
+    void handleCheckDevice(QStringList s);  // check device connection
+    void handleGetNetworkList(QStringList s);    //  get network list
+    void handleGetNetworkStatus(QStringList s); //  get network status
 
 private slots:
     void flushSerialSlot();         //  flush icon
@@ -49,6 +57,7 @@ private slots:
     void expansionSlot(int index);  //  expansion
     void connectSlot(int index);    //  connection button
     void flushNetworkSlot();        //  flush list button
+    void readyReadSlot();
 
 };
 

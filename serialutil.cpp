@@ -1,7 +1,13 @@
 #include "serialutil.h"
 
+#define DATA_BITS QSerialPort::Data8
+#define PARITY QSerialPort::NoParity
+#define STOP_BITS QSerialPort::OneStop
+#define FLOW_CONTROL QSerialPort::NoFlowControl
+#define BAUD_RATE 115200
 
-SerialUtil::SerialUtil()
+SerialUtil::SerialUtil(QObject *parent)
+    :QSerialPort (parent)
 {
 
 }
@@ -9,10 +15,32 @@ SerialUtil::SerialUtil()
 QList<QSerialPortInfo> SerialUtil::scanSerial() {
 //    扫描串口
     return QSerialPortInfo::availablePorts();
-//    foreach(const QSerialPortInfo &info, QSerialPortInfo::availablePorts()) {
-//        cb[0]->addItem(info.portName());
-//    }
+
 }
+
+void SerialUtil::initSerial(QString portName) {
+//  initSerial
+
+    this->setPortName(portName);
+    this->setBaudRate(115200);
+    this->setDataBits(DATA_BITS);
+    this->setParity(PARITY);
+    this->setStopBits(STOP_BITS);
+    this->setFlowControl(FLOW_CONTROL);
+}
+
+bool SerialUtil::openSerial(QString portName) {
+    this->initSerial(portName);
+
+    if(!this->open(QIODevice::ReadWrite)) {
+
+        return false;
+    } else {
+
+        return true;
+    }
+}
+
 
 void SerialUtil::initBaudItem() {
 //  初始化波特率

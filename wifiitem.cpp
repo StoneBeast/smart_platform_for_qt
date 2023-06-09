@@ -1,4 +1,4 @@
-#include "wifiitem.h"
+    #include "wifiitem.h"
 
 WifiItem::WifiItem(QWidget *parent)
     : QWidget{parent}

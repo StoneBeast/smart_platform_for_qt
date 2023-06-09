@@ -19,7 +19,7 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     scrollArea->setWidgetResizable(true);
     networkList = new QWidget(this);
     networkList->setObjectName("network-list");
-    QVBoxLayout *networkListLayout = new QVBoxLayout(networkList);
+    networkListLayout = new QVBoxLayout(networkList);
     networkListLayout->setAlignment(Qt::AlignTop);
     networkList->setLayout(networkListLayout);
     networkList->setStyleSheet("QWidget#network-list {background:rgb(251, 251, 251);}");
@@ -179,12 +179,6 @@ void VisibleNetwork::expansionSlot(int index) {
 void VisibleNetwork::flushSerialSlot() {
     qDebug() << "flush serial list  row:159";
 
-    QPropertyAnimation *animation = new QPropertyAnimation(flushLab, "rotation");
-    animation->setDuration(4000);
-    animation->setStartValue(0);
-    animation->setEndValue(360);
-    animation->setLoopCount(-1); //旋转次数
-    animation->start(QAbstractAnimation::KeepWhenStopped);
 //    do flush serial list
     initSerial_cb(serial_cb);
 //  尝试添加旋转动画
@@ -224,4 +218,141 @@ void VisibleNetwork::flushNetworkSlot() {
      *  刷新network list，但是这个函数只有在设备已经正确连接之后才可以被调用
      *  如果设备没有正确连接，点击这个按钮则弹出相关提示。
      */
+}
+
+void VisibleNetwork::parseResult(QString result) {
+    /*
+     *  request format:
+     *          visibleNetwork|<codeNum>
+     *
+     *  response format:
+     *          visibleNetwork|<codeNum>|<status>|body
+     *
+     * codeNum:
+     *          0: device is connect
+     *          1: get network list
+     *          2: get device network status
+     * status:
+     *          OK
+     *          ERROR
+     */
+    QStringList resultList = result.split('|');
+    if (resultList[0] == "visibleNetwork") {
+        switch(resultList[1].toInt()) {
+        case 0:
+            //  check device connect
+            handleCheckDevice(resultList);
+            break;
+        case 1:
+            handleGetNetworkList(resultList);
+            //  get network list
+            break;
+        case 2:
+            handleGetNetworkStatus(resultList);
+            //  get device network status
+            break;
+        default :
+            // error
+            break;
+        }
+    }
+}
+
+// must add timeout signal
+void VisibleNetwork::readyReadSlot() {
+    QByteArray buf = serial->readAll();
+    parseResult(QString(buf));
+}
+
+void VisibleNetwork::handleCheckDevice(QStringList s) {
+    if (s[2] == "OK") {
+
+    }
+}
+void VisibleNetwork::handleGetNetworkList(QStringList s) {
+    if (s[2] == "OK") {
+        /*
+         * body format:
+         * "{
+         *    "networkList":[
+         *                      {
+         *                          "ssid": "asdasd",
+         *                          "ecn" : "-12",
+         *                          "rssi": "3",
+         *                          "mac" : "ca:ac:24:c5";
+         *                      },
+         *                      {},....
+         *                  ]
+         * }"
+         *
+         */
+        QJsonParseError err_rpt;
+        QJsonDocument  root_Doc = QJsonDocument::fromJson(s[3].toLatin1(), &err_rpt); // 字符串格式化为JSON
+
+        if(err_rpt.error != QJsonParseError::NoError)
+        {
+            qDebug() << "JSON格式错误";
+        }
+        else    // JSON格式正确
+        {
+            //qDebug() << "JSON格式正确：\n" << root_Doc;
+
+            QJsonObject root_Obj = root_Doc.object();
+            QJsonValue network_list = root_Obj.value("networkList"); // HeWeather6键的值，是一个数组
+            if(network_list.isArray()) // 可省略
+            {
+                QJsonArray wifiArray = network_list.toArray();
+                int count = wifiArray.count();
+
+                for (int i=0; i<count; i++) {
+                    QJsonObject networkObj = wifiArray.at(i).toObject();
+                    WifiItem *temp = new WifiItem(i, networkObj.value("ssid").toString(),
+                                                 networkObj.value("ecn").toInt(),
+                                                 networkObj.value("ssid").toInt(),
+                                                 networkObj.value("mac").toString()
+                                                 );
+                    wifiItemList.append(*temp);
+
+                    networkListLayout->addItem(  );
+
+
+//                    networkListLayout->addWidget(item1);
+//                    networkListLayout->addWidget(item2);
+//                    networkListLayout->addWidget(item3);
+//                    networkListLayout->addWidget(item4);
+//                    networkListLayout->addWidget(item5);
+
+//                    connect(item1, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+//                    connect(item2, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+//                    connect(item3, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+//                    connect(item4, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+//                    connect(item5, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+
+
+//                    connect(item1, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+//                    connect(item2, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+//                    connect(item3, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+//                    connect(item4, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+//                    connect(item5, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+                }
+                QJsonObject weather_Obj = network_list.toArray().at(0).toObject(); // HeWeather6数组就含有一个元素0
+
+                /* basic键信息 */
+                QJsonObject basic_Obj = weather_Obj.value("basic").toObject();
+                QString cid = basic_Obj.value("cid").toString();
+                QString parent_city = basic_Obj.value("parent_city").toString();
+                QString cnty = basic_Obj.value("cnty").toString();
+                QString basic_info = cid + " " + parent_city + " " + cnty;
+                qDebug() << basic_info;
+
+                QString status = "解析状态:" + weather_Obj.value("status").toString();    //"ok"
+                qDebug() << status;
+            }
+        }
+    }
+}
+void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
+    if (s[2] == "OK") {
+
+    }
 }

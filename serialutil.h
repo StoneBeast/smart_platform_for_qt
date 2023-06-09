@@ -5,19 +5,17 @@
 #include <QSerialPortInfo>
 #include <QDebug>
 
-class SerialUtil
+class SerialUtil : public QSerialPort
 {
 private:
-    QSerialPort *sp;    //serial port pointer
+    void initSerial(QString portName);
+    //QSerialPort *sp;    //serial port pointer
 
-public:
-    QList<QSerialPortInfo> scanSerial();    //scan serial ports
+public: 
     void initBaudItem();  //combobox items for baudrate options
     void initByteItem();  //combobox items for bytewidth options
     void initParityItem();//combobox items for parity options
     void initStopItem();  //combobox items for stopbits options
-
-private slots:
     void sendPB_slot();   //send button slot func
     void openPB_slot();   //open button slot func
     void readSB_slot();   //serial receive slot func
@@ -27,8 +25,12 @@ private slots:
     void orderled2off();
     void orderledtoggle();
     void orderdht11();
+
+    QList<QSerialPortInfo> scanSerial();    //scan serial ports
+    bool openSerial(QString portName);
+
 public:
-    SerialUtil();
+    SerialUtil(QObject *parent = nullptr);
 };
 
 #endif // SERIALUTIL_H
