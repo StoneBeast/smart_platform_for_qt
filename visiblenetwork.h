@@ -19,6 +19,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QTimer>
 
 class VisibleNetwork : public QWidget
 {
@@ -35,16 +36,26 @@ public:
     SerialUtil *serial;         //  串口成员
     QComboBox *serial_cb;       //  选择串口的下拉框
     ClickLabel *flushLab;
-    QPropertyAnimation *iconAnimation;   //  刷新图标动画
-    QList <WifiItem> wifiItemList;
+
     WifiItem *item[5];
     QVBoxLayout *networkListLayout;
+    QVBoxLayout *infoLayout;
+
+    QString ssid;
+    QString ip;
+    QString rssi;
+    QString ecn;
+    QString isInternet;
+    QString mac;
+    QTimer *timer;
+
+    QJsonArray wifiArray;
+    QList<WifiObj> wifiItemList;
 
 
-private:
+private:   
     void initNetworkList(); //  初始化网络连接列表
     void initSerial_cb(QComboBox *cb);  //  初始化串口选择下拉框
-    void rollIcon(int angle, int duration); //  旋转图标
     void initNetInfo(); //  初始化网络信息
     void parseResult(QString result);
     void handleCheckDevice(QStringList s);  // check device connection
@@ -58,6 +69,7 @@ private slots:
     void connectSlot(int index);    //  connection button
     void flushNetworkSlot();        //  flush list button
     void readyReadSlot();
+    void timeoutSlot();
 
 };
 

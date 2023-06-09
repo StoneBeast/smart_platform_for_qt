@@ -1,4 +1,4 @@
-    #include "wifiitem.h"
+#include "wifiitem.h"
 
 WifiItem::WifiItem(QWidget *parent)
     : QWidget{parent}
@@ -6,9 +6,12 @@ WifiItem::WifiItem(QWidget *parent)
 
 }
 
-WifiItem::WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWidget *parent)
-    : QWidget{parent}, index(index), ssid(ssid), ecn(ecn), rssi(rssi),
-      mac(mac)
+//WifiItem::WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWidget *parent)
+//    : QWidget{parent}, index(index), ssid(ssid), ecn(ecn), rssi(rssi),
+//      mac(mac)
+WifiItem::WifiItem(int index, WifiObj obj, QWidget *parent)
+    : QWidget{parent}, index(index), ssid(obj.ssid()), ecn(obj.ecn()), rssi(obj.rssi()),
+      mac(obj.mac())
 {
     this->setAttribute(Qt::WA_StyledBackground, true);
     this->setObjectName("wifi-item");
@@ -152,8 +155,8 @@ void WifiItem::mouseReleaseEvent(QMouseEvent *ev)
 }
 
 void WifiItem::ctrlClickSlot() {
-    emit clickConnect(getIndex());
-    qDebug() << "connect! row:155";
+    emit clickConnect(this->getButtonText(), getIndex());
+    qDebug()  << this->getButtonText() << " row:155";
 }
 
 void WifiItem::setFold() {
@@ -167,3 +170,4 @@ void WifiItem::setExpansion() {
 int WifiItem::getIndex() {
     return index;
 }
+

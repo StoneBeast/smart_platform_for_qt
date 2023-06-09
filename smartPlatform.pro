@@ -17,7 +17,8 @@ SOURCES += \
     visiblenetwork.cpp \
     weather.cpp \
     wifiitem.cpp \
-    clicklabel.cpp
+    clicklabel.cpp \
+    wifiobj.cpp
 
 HEADERS += \
     calendar.h \
@@ -27,7 +28,8 @@ HEADERS += \
     visiblenetwork.h \
     weather.h \
     wifiitem.h \
-    clicklabel.h
+    clicklabel.h \
+    wifiobj.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -9,19 +9,24 @@
 #include <QLabel>
 #include <QDebug>
 #include <QMouseEvent>
+#include "wifiobj.h"
 
 
 class WifiItem : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit WifiItem(QWidget *parent = nullptr);
-    explicit WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWidget *parent = nullptr);
+    // WifiItem(int index, QString ssid, int ecn, int rssi, QString mac, QWidget *parent = nullptr);
+    WifiItem(int index, WifiObj obj, QWidget *parent = nullptr);
     QPoint mousePos;
     QWidget *moreInfo_widget;
     void setFold();
     void setExpansion();
     int getIndex();
+    void setButtonText(QString text) { conButton.setText(text); }
+    QString getButtonText() { return conButton.text(); }
 
 private:
     int index;      //index
@@ -42,7 +47,7 @@ private slots:
 
 signals:
     void clicked(int index);
-    void clickConnect(int index);
+    void clickConnect(QString text, int index);
 
 protected:
     void mousePressEvent(QMouseEvent *ev);

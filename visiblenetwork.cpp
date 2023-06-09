@@ -8,6 +8,10 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     this->setObjectName("main-page");
     this->setStyleSheet("QWidget#main-page{background-color: #f3f3f3;}");
 
+    //  创建定时器对象，主要用于数据接收定时
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(timeoutSlot()));
+
     //  创建串口对象
     serial = new SerialUtil();
 
@@ -31,7 +35,7 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 
     //  添加网络信息组件
     netWorkInfo = new QLabel(this);
-    QVBoxLayout *infoLayout = new QVBoxLayout(this);
+    infoLayout = new QVBoxLayout(this);
     netWorkInfo->setLayout(infoLayout);
     infoLayout->addWidget(new QLabel("网络名称:"));
     infoLayout->addWidget(new QLabel("IP地址:"));
@@ -100,11 +104,11 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 
 
 //  debug
-    WifiItem *item1 = new WifiItem(0, "test", 0, -21, "ac:2d:dd:41:21:as", networkList);
-    WifiItem *item2 = new WifiItem(1, "hello", 3, -56, "ac:2d:dd:41:21:ad", networkList);
-    WifiItem *item3 = new WifiItem(2, "world", 4, -70, "ac:2d:dd:4c:21:as", networkList);
-    WifiItem *item4 = new WifiItem(3, "azur", 3, -10, "ac:2d:d3:41:21:as", networkList);
-    WifiItem *item5 = new WifiItem(4, "lane", 0, -45, "ac:22:dd:41:21:as", networkList);
+    WifiItem *item1 = new WifiItem(0, *(new WifiObj("test", 0, -21, "ac:2d:dd:41:21:as")), networkList);
+    WifiItem *item2 = new WifiItem(1, *(new WifiObj("hello", 3, -56, "ac:2d:dd:41:21:ad")), networkList);
+    WifiItem *item3 = new WifiItem(2, *(new WifiObj("world", 4, -70, "ac:2d:dd:4c:21:as")), networkList);
+    WifiItem *item4 = new WifiItem(3, *(new WifiObj("azur", 3, -10, "ac:2d:d3:41:21:as")), networkList);
+    WifiItem *item5 = new WifiItem(4, *(new WifiObj("lane", 0, -45, "ac:22:dd:41:21:as")), networkList);
     item[0] = item1;
     item[1] = item2;
     item[2] = item3;
@@ -159,11 +163,6 @@ void VisibleNetwork::initSerial_cb(QComboBox *cb) {
     }
 }
 
-void VisibleNetwork::rollIcon(int angle, int duration) {
-    iconAnimation->setEndValue(angle);
-    iconAnimation->setDuration(duration);
-    iconAnimation->start();
-}
 
 void VisibleNetwork::expansionSlot(int index) {
     qDebug() << "open!!!!! row:139" << index;
@@ -199,7 +198,13 @@ void VisibleNetwork::checkConnectionSlot() {
     qDebug() << "check device connection row: 170!";
 
     //  do check connection
+
     /*
+     * 添加定时器，超时函数设置为解除readyread信号
+     * 连接readyread信号
+     *
+     *
+     *
      *
      * 基本实现思路：
      *  将检查设备是否正确连接以及设备是否连接网络两个功能合起来，
@@ -208,6 +213,14 @@ void VisibleNetwork::checkConnectionSlot() {
      *      然后向设备发送命令，获取网络环境信息，更新 network list
      *      然后再获取设备连接的网络的信息，然后修改wifiitem上的链接按钮
      */
+
+    //  设置定时器
+    connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+    timer->start(500);
+
+    //  询问设备是否被正确连接
+    serial->write("visibleNetwork|0");
+
 }
 
 void VisibleNetwork::flushNetworkSlot() {
@@ -229,7 +242,7 @@ void VisibleNetwork::parseResult(QString result) {
      *          visibleNetwork|<codeNum>|<status>|body
      *
      * codeNum:
-     *          0: device is connect
+     *          0: is device connect
      *          1: get network list
      *          2: get device network status
      * status:
@@ -260,15 +273,24 @@ void VisibleNetwork::parseResult(QString result) {
 
 // must add timeout signal
 void VisibleNetwork::readyReadSlot() {
+    //  接收到信号九停止定时器，防止发出超时信号
+    timer->stop();
     QByteArray buf = serial->readAll();
     parseResult(QString(buf));
 }
 
 void VisibleNetwork::handleCheckDevice(QStringList s) {
     if (s[2] == "OK") {
+        //  设备正常连接，开始获取网络列表
 
+        connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+        //  扫描wifi时间较长
+        timer->start(5000);
+        serial->write("visibleNetwork|1");
     }
 }
+#if 1
+
 void VisibleNetwork::handleGetNetworkList(QStringList s) {
     if (s[2] == "OK") {
         /*
@@ -289,70 +311,99 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
         QJsonParseError err_rpt;
         QJsonDocument  root_Doc = QJsonDocument::fromJson(s[3].toLatin1(), &err_rpt); // 字符串格式化为JSON
 
-        if(err_rpt.error != QJsonParseError::NoError)
-        {
+        if(err_rpt.error != QJsonParseError::NoError) {
             qDebug() << "JSON格式错误";
         }
-        else    // JSON格式正确
-        {
+
+        else {
             //qDebug() << "JSON格式正确：\n" << root_Doc;
 
             QJsonObject root_Obj = root_Doc.object();
-            QJsonValue network_list = root_Obj.value("networkList"); // HeWeather6键的值，是一个数组
+            QJsonValue network_list = root_Obj.value("networkList");
             if(network_list.isArray()) // 可省略
             {
-                QJsonArray wifiArray = network_list.toArray();
+                this->wifiArray = network_list.toArray();
                 int count = wifiArray.count();
 
+                //  首先清空布局
+                while(networkListLayout->count())
+                {
+                    wifiItemList.clear();
+                    QWidget *p=this->networkListLayout->itemAt(0)->widget();
+                    p->setParent (NULL);
+                    this->networkListLayout->removeWidget(p);
+                    delete p;
+                }
+
+                //  添加布局
                 for (int i=0; i<count; i++) {
                     QJsonObject networkObj = wifiArray.at(i).toObject();
-                    WifiItem *temp = new WifiItem(i, networkObj.value("ssid").toString(),
-                                                 networkObj.value("ecn").toInt(),
-                                                 networkObj.value("ssid").toInt(),
-                                                 networkObj.value("mac").toString()
-                                                 );
-                    wifiItemList.append(*temp);
 
-                    networkListLayout->addItem(  );
+                    wifiItemList.append(*(new WifiObj(networkObj.value("ssid").toString(),
+                                                      networkObj.value("ecn").toInt(),
+                                                      networkObj.value("ssid").toInt(),
+                                                      networkObj.value("mac").toString()
+                                                      )));
 
+                    WifiItem *temp = new WifiItem(i, (wifiItemList.at(i)));
 
-//                    networkListLayout->addWidget(item1);
-//                    networkListLayout->addWidget(item2);
-//                    networkListLayout->addWidget(item3);
-//                    networkListLayout->addWidget(item4);
-//                    networkListLayout->addWidget(item5);
-
-//                    connect(item1, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-//                    connect(item2, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-//                    connect(item3, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-//                    connect(item4, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-//                    connect(item5, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-
-
-//                    connect(item1, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
-//                    connect(item2, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
-//                    connect(item3, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
-//                    connect(item4, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
-//                    connect(item5, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
+                    networkListLayout->addWidget(temp);
+                    connect(temp, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+                    connect(temp, SIGNAL(clickConnect(int)), this, SLOT(connectSlot(int)));
                 }
-                QJsonObject weather_Obj = network_list.toArray().at(0).toObject(); // HeWeather6数组就含有一个元素0
-
-                /* basic键信息 */
-                QJsonObject basic_Obj = weather_Obj.value("basic").toObject();
-                QString cid = basic_Obj.value("cid").toString();
-                QString parent_city = basic_Obj.value("parent_city").toString();
-                QString cnty = basic_Obj.value("cnty").toString();
-                QString basic_info = cid + " " + parent_city + " " + cnty;
-                qDebug() << basic_info;
-
-                QString status = "解析状态:" + weather_Obj.value("status").toString();    //"ok"
-                qDebug() << status;
             }
         }
+
+        // 获取成功，开始获取网络状态
+        connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+        timer->start(3000);
+        serial->write("visibleNetwork|2");
     }
 }
+
+#endif
 void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
+
+    /*
+     *
+     * body format:
+     *  "{
+     *      "data" : {
+     *          "isConnection": "true",
+     *          "ip"   : "192.168.1.1",
+     *          "mac"  :  "ad:22:42:54:ad"
+     *          "isInternet": "false"
+     *      }
+     *  }"
+     */
     if (s[2] == "OK") {
+        QJsonParseError err_rpt;
+        QJsonDocument  root_Doc = QJsonDocument::fromJson(s[3].toLatin1(), &err_rpt); // 字符串格式化为JSON
+        QJsonObject root_Obj = root_Doc.object();
+        QJsonValue data = root_Obj.value("data");
+        QJsonObject dataObj = data.toObject();
+        if (dataObj.value("isConnection").toString() == "true") {
+
+            int i = 0;
+            foreach (WifiObj obj, wifiItemList) {
+                if (obj.mac() == dataObj.value("mac").toString()) {
+                    ((QLabel)infoLayout->itemAt(0)->widget()).setText(QString("网络名称:\t%1").arg(obj.ssid()));
+                    ((QLabel)infoLayout->itemAt(1)->widget()).setText(QString("IP地址:\t%1").arg(obj.ip()));
+                    ((QLabel)infoLayout->itemAt(2)->widget()).setText(QString("信号强度:\t%1").arg(obj.ecn()));
+                    ((QLabel)infoLayout->itemAt(3)->widget()).setText(QString("加密格式:\t%1").arg(obj.rssi()));
+                    ((QLabel)infoLayout->itemAt(4)->widget()).setText(QString("是否连接互联网:\t%1").arg(dataObj.value("isInternet").toString()));
+
+                    //  修改网络列表，将已连接的网络的按钮改为断开连接
+                    ((WifiItem)(networkListLayout->itemAt(i)->widget())).setButtonText("断开连接");
+                }
+                i++;
+            }
+        }
 
     }
+}
+
+void VisibleNetwork::timeoutSlot() {
+    //  超时，为收到回复，请检查设备连接
+    disconnect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
 }
