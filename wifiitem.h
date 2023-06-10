@@ -22,9 +22,9 @@ public:
     ~WifiItem();
     QPoint mousePos;
     QWidget *moreInfo_widget;
-    void setFold();
-    void setExpansion();
-    int getIndex();
+    void setFold() { this->moreInfo_widget->setHidden(true); }
+    void setExpansion() { this->moreInfo_widget->setHidden(false); }
+    int getIndex() { return index; }
     void setButtonText(QString text) { ctrlButton->setText(text); }
     QString getButtonText() { return ctrlButton->text(); }
 
@@ -51,7 +51,6 @@ signals:
 protected:
     void mousePressEvent(QMouseEvent *ev);
     void mouseReleaseEvent(QMouseEvent *ev);
-
 
 signals:
 

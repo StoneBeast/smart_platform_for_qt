@@ -50,14 +50,10 @@ public:
     QString mac;
     QTimer *timer;
 
+    QByteArray serialBuf;
+
     QList<WifiObj> wifiObjList;
 
-    /*
-"isConnection": "true",
-     *          "ip"   : "192.168.1.1",
-     *          "mac"  :  "ad:22:42:54:ad"
-     *          "isInternet": "false"
-*/
 
     enum WifiItemArgIndex { SSID, ECN, RSSI, MAC };
     enum NetworkInfoIndex {IS_CONNECTION, IP, INFO_MAC, IS_INTERNTER};
@@ -70,6 +66,7 @@ private:
     void handleCheckDevice(QStringList s);  // check device connection
     void handleGetNetworkList(QStringList s);    //  get network list
     void handleGetNetworkStatus(QStringList s); //  get network status
+
 
 private slots:
     void flushSerialSlot();         //  flush icon

@@ -27,6 +27,7 @@ void SerialUtil::initSerial(QString portName) {
     this->setParity(PARITY);
     this->setStopBits(STOP_BITS);
     this->setFlowControl(FLOW_CONTROL);
+    this->setReadBufferSize(1024);
 }
 
 bool SerialUtil::openSerial(QString portName) {

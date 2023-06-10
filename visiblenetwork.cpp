@@ -37,11 +37,24 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     netWorkInfo = new QLabel(this);
     infoLayout = new QVBoxLayout(this);
     netWorkInfo->setLayout(infoLayout);
-    infoLayout->addWidget(new QLabel("网络名称:"));
-    infoLayout->addWidget(new QLabel("IP地址:"));
-    infoLayout->addWidget(new QLabel("信号强度:"));
-    infoLayout->addWidget(new QLabel("加密格式:"));
-    infoLayout->addWidget(new QLabel("是否连接互联网:"));
+    QLabel *textLab[5];
+    textLab[0] = new QLabel("网络名称:");
+    textLab[0]->setObjectName("ssid");
+    textLab[1] = new QLabel("IP地址:");
+    textLab[1]->setObjectName("ip");
+    textLab[2] = new QLabel("信号强度:");
+    textLab[2]->setObjectName("rssi");
+    textLab[3] = new QLabel("加密格式:");
+    textLab[3]->setObjectName("ecn");
+    textLab[4] = new QLabel("是否连接互联网:");
+    textLab[4]->setObjectName("isInternet");
+
+    infoLayout->addWidget(textLab[0]);
+    infoLayout->addWidget(textLab[1]);
+    infoLayout->addWidget(textLab[2]);
+    infoLayout->addWidget(textLab[3]);
+    infoLayout->addWidget(textLab[4]);
+
     netWorkInfo->setObjectName("network-info");
     netWorkInfo->setStyleSheet("QLabel#network-info{background:rgb(255, 255, 255); "
                                "border: 1px #e7e7f1 solid;"
@@ -171,11 +184,17 @@ void VisibleNetwork::expansionSlot(int index) {
 #if DEBUG == 1
     qDebug() <<__FILE__ << __LINE__ << "open!!!!! row:139" << index;
 #endif //DEBUG == 1
-    for(int i = 0; i<5; i++) {
+    for(int i = 0; i < networkListLayout->count(); i++) {
         if (i == index) {
-            item[i]->setExpansion();
+#if DEBUG == 1
+            qDebug() <<__FILE__ << __LINE__ << "expansionSlot,i==index" << i;
+#endif //DEBUG == 1
+            tempList[i]->setExpansion();
         } else {
-            item[i]->setFold();
+#if DEBUG == 1
+            qDebug() <<__FILE__ << __LINE__ << "expansionSlot,i!=index" << i;
+#endif //DEBUG == 1
+            tempList[i]->setFold();
         }
     }
 }
@@ -263,7 +282,7 @@ void VisibleNetwork::parseResult(QString result) {
      *          visibleNetwork|<codeNum>
      *
      *  response format:
-     *          visibleNetwork|<codeNum>|<status>|body
+     *          {visibleNetwork|<codeNum>|<status>|body}
      *
      * codeNum:
      *          0: is device connect
@@ -304,19 +323,6 @@ void VisibleNetwork::parseResult(QString result) {
     }
 }
 
-// must add timeout signal
-void VisibleNetwork::readyReadSlot() {
-#if DEBUG == 1
-    qDebug() << __FILE__ << __LINE__ << "ready read";
-#endif //DEBUG == 1
-
-    //  接收到信号停止定时器，防止发出超时信号
-    timer->stop();
-    disconnect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
-    QByteArray buf = serial->readAll();
-    parseResult(QString(buf));
-}
-
 void VisibleNetwork::handleCheckDevice(QStringList s) {
 #if DEBUG == 1
     qDebug() << __FILE__ << __LINE__ << "check device";
@@ -329,6 +335,7 @@ void VisibleNetwork::handleCheckDevice(QStringList s) {
         //  扫描wifi时间较长
         timer->start(5000);
         serial->write("visibleNetwork|1");
+
     }
 }
 #if 1
@@ -343,51 +350,58 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
          */
 
         QStringList body = s[3].split('&');
-//                this->wifiArray = network_list.toArray();
-                int count = body.count();
+        int count = body.count();
 
-                //  首先清空布局
-                while(networkListLayout->count())
-                {
 #if DEBUG == 1
-                    qDebug() << __FILE__ << __LINE__ << "clear all WifiItem";
+        qDebug() << __FILE__ << __LINE__ << "count: " << count;
 #endif
-                    wifiObjList.clear();
-                    WifiItem *p=static_cast<WifiItem*>(networkListLayout->itemAt(0)->widget());
-                    disconnect(p, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-                    disconnect(p, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
-                    p->setParent (nullptr);
-                    this->networkListLayout->removeWidget(p);
-                    delete p;
-                }
 
-                //  添加布局
+        //  首先清空布局
+        while(networkListLayout->count())
+        {
 #if DEBUG == 1
-                qDebug() << __FILE__ << __LINE__ << "begin add widget";
+            qDebug() << __FILE__ << __LINE__ << "clear all WifiItem";
 #endif
-                for (int i=0; i<count; i++) {
-                    QStringList item = body[i].split('%');
+            wifiObjList.clear();
+            WifiItem *p=static_cast<WifiItem*>(networkListLayout->itemAt(0)->widget());
+            disconnect(p, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+            disconnect(p, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
+            p->setParent (nullptr);
+            this->networkListLayout->removeWidget(p);
+            delete p;
+        }
 
-                    wifiObjList.append(*(new WifiObj(item[SSID],
-                                                      item[ECN].toInt(),
-                                                      item[RSSI].toInt(),
-                                                      item[MAC]
-                                                      )));
+        //  添加布局
+#if DEBUG == 1
+        qDebug() << __FILE__ << __LINE__ << "begin add widget";
+#endif
+        for (int i=0; i<count; i++) {
+            QStringList item = body[i].split('%');
 
-                    tempList[i] = new WifiItem(i, (wifiObjList.at(i)), networkList);
+            wifiObjList.append(*(new WifiObj(item[SSID],
+                                              item[ECN].toInt(),
+                                              item[RSSI].toInt(),
+                                              item[MAC]
+                                              )));
 
-                    networkListLayout->addWidget(tempList[i]);
-                    connect(tempList[i], SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-                    connect(tempList[i], SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
-                }
+            tempList[i] = new WifiItem(i, (wifiObjList.at(i)), networkList);
+
+            networkListLayout->addWidget(tempList[i]);
+            connect(tempList[i], SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+            connect(tempList[i], SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
+
+        }
 
 #if DEBUG == 1
-                qDebug() << __FILE__ << __LINE__ << "end of add all widget";
+        qDebug() << __FILE__ << __LINE__ << "end of add all widget";
 #endif
 
         // 获取成功，开始获取网络状态
         connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
         timer->start(3000);
+#if DEBUG == 1
+        qDebug() << __FILE__ << __LINE__ << "timer start";
+#endif
         serial->write("visibleNetwork|2");
     }
 }
@@ -399,7 +413,11 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
      * data format:
      *  isConnection%ip%mac%isInternet
      *          true%192.168.1.1%ad:22:42:54:ad%false
+     *
+     *  {true%192.168.1.1%ac:bb:3a:44%false}
      */
+
+//  TODO: 显示数据的标签样式需要修改，修改按钮的状态，网络信息的呈现方式，比如信号强度不能是数据，而应该是 ‘很强’ 这种形容词
 #if DEBUG == 1
     qDebug() << __FILE__ << __LINE__ << "get network status";
 #endif //DEBUG == 1
@@ -407,21 +425,64 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
         QStringList temp_networkInfo = s[3].split('%');
         if (temp_networkInfo[IS_CONNECTION] == "true") {
 
+#if DEBUG == 1
+            qDebug() << __FILE__ << __LINE__ << "begin change QLabel";
+#endif //DEBUG == 1
+
             int i = 0;
             foreach (WifiObj obj, wifiObjList) {
                 if (obj.mac() == temp_networkInfo[INFO_MAC]) {
-                    static_cast<QLabel>(infoLayout->itemAt(0)->widget()).setText(QString("网络名称:\t%1").arg(obj.ssid()));
-                    static_cast<QLabel>(infoLayout->itemAt(1)->widget()).setText(QString("IP地址:\t%1").arg(obj.ip()));
-                    static_cast<QLabel>(infoLayout->itemAt(2)->widget()).setText(QString("信号强度:\t%1").arg(obj.ecn()));
-                    static_cast<QLabel>(infoLayout->itemAt(3)->widget()).setText(QString("加密格式:\t%1").arg(obj.rssi()));
-                    static_cast<QLabel>(infoLayout->itemAt(4)->widget()).setText(QString("是否连接互联网:\t%1").arg(temp_networkInfo[IS_INTERNTER]));
+#if DEBUG == 1
+                    qDebug() << __FILE__ << __LINE__ << this->findChild<QLabel *>("ssid")->text();
+#endif //DEBUG == 1
+
+                    this->findChild<QLabel *>("ssid")->setText(QString("网络名称:\t%1").arg(obj.ssid()));
+                    this->findChild<QLabel *>("ip")->setText(QString("IP地址:\t%1").arg(temp_networkInfo[IP]));
+                    this->findChild<QLabel *>("rssi")->setText(QString("信号强度:\t%1").arg(obj.rssi()));
+                    this->findChild<QLabel *>("ecn")->setText(QString("加密格式:\t%1").arg(obj.ecn()));
+                    this->findChild<QLabel *>("isInternet")->setText(QString("是否连接互联网:\t%1").arg(temp_networkInfo[IS_INTERNTER]));
 
                     //  修改网络列表，将已连接的网络的按钮改为断开连接
-                    static_cast<WifiItem>((networkListLayout->itemAt(i)->widget())).setButtonText("断开连接");
+                    //static_cast<WifiItem>((networkListLayout->itemAt(i)->widget())).setButtonText("断开连接");
                 }
                 i++;
             }
+#if DEBUG == 1
+            qDebug() << __FILE__ << __LINE__ << "end change QLabel";
+#endif //DEBUG == 1
         }
+
+    }
+}
+
+// must add timeout signal
+void VisibleNetwork::readyReadSlot() {
+#if DEBUG == 1
+    qDebug() << __FILE__ << __LINE__ << "ready read";
+#endif //DEBUG == 1
+
+    //  接收到信号停止定时器，防止发出超时信号
+    timer->stop();
+
+    serialBuf += serial->readAll();
+
+    if (serialBuf.startsWith('{') && serialBuf.endsWith('}')) {
+#if DEBUG == 1
+        qDebug() << __FILE__ << __LINE__ << "isEnd?" << serial->atEnd();
+#endif //DEBUG == 1
+        disconnect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+
+#if DEBUG == 1
+        qDebug() << __FILE__ << __LINE__ << "\n" <<QString(serialBuf) << "\n";
+#endif //DEBUG == 1
+
+        serialBuf.remove(0, 1);
+        serialBuf.remove(serialBuf.length() - 1, 1);
+
+        parseResult(QString(serialBuf));
+
+        //  清空buf
+        serialBuf.clear();
 
     }
 }
@@ -431,4 +492,5 @@ void VisibleNetwork::timeoutSlot() {
     qDebug() << __FILE__ << __LINE__ << "time out";
     disconnect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
     timer->stop();
+
 }

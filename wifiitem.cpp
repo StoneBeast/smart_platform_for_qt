@@ -10,8 +10,8 @@ WifiItem::WifiItem(QWidget *parent)
 //    : QWidget{parent}, index(index), ssid(ssid), ecn(ecn), rssi(rssi),
 //      mac(mac)
 WifiItem::WifiItem(int index, WifiObj obj, QWidget *parent)
-    : QWidget{parent}, index(index), ssid(obj.ssid()), ecn(obj.ecn()), rssi(obj.rssi()),
-      mac(obj.mac())
+    : QWidget{parent}, index(index), ssid(obj.ssid()),
+      ecn(obj.ecn()), rssi(obj.rssi()), mac(obj.mac())
 {
     this->setAttribute(Qt::WA_StyledBackground, true);
     this->setObjectName("wifi-item");
@@ -94,6 +94,7 @@ WifiItem::WifiItem(int index, WifiObj obj, QWidget *parent)
     main_layout->addWidget(moreInfo_widget);
 
     moreInfo_widget->setHidden(true);
+    //setFold();
 
     this->setLayout(main_layout);
 }
@@ -165,15 +166,4 @@ void WifiItem::ctrlClickSlot() {
     qDebug()<<__FILE__ << __LINE__   << this->getButtonText() << " row:155";
 }
 
-void WifiItem::setFold() {
-    moreInfo_widget->setHidden(true);
-}
-
-void WifiItem::setExpansion() {
-    moreInfo_widget->setHidden(false);
-}
-
-int WifiItem::getIndex() {
-    return index;
-}
 
