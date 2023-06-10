@@ -1,5 +1,11 @@
 #include "visiblenetwork.h"
 
+/*
+ *
+ * 如果出现不能打开串口相关的问题，需要再调用一次扫描串口函数
+ *
+ */
+
 VisibleNetwork::VisibleNetwork(QWidget *parent)
     : QWidget{parent}
 {
@@ -37,25 +43,6 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     netWorkInfo = new QLabel(
         "<span style=\"color:#617bac; font-size: 20px; font-weight: bold;\">"
         "暂无网络信息</span>");
-//    infoLayout = new QVBoxLayout(this);
-//    netWorkInfo->setLayout(infoLayout);
-//    QLabel *textLab[5];
-//    textLab[0] = new QLabel("<span style=\"color:#617bac\">网络名称: </span>");
-//    textLab[0]->setObjectName("ssid");
-//    textLab[1] = new QLabel("<span style=\"color:#617bac\">IP地址: </span>");
-//    textLab[1]->setObjectName("ip");
-//    textLab[2] = new QLabel("<span style=\"color:#617bac\">信号强度: </span>");
-//    textLab[2]->setObjectName("rssi");
-//    textLab[3] = new QLabel("<span style=\"color:#617bac\">加密格式: </span>");
-//    textLab[3]->setObjectName("ecn");
-//    textLab[4] = new QLabel("<span style=\"color:#617bac\">是否连接互联网: </span>");
-//    textLab[4]->setObjectName("isInternet");
-
-//    infoLayout->addWidget(textLab[0]);
-//    infoLayout->addWidget(textLab[1]);
-//    infoLayout->addWidget(textLab[2]);
-//    infoLayout->addWidget(textLab[3]);
-//    infoLayout->addWidget(textLab[4]);
 
     netWorkInfo->setObjectName("network-info");
     netWorkInfo->setStyleSheet("QLabel#network-info{background:rgb(255, 255, 255); "
@@ -99,6 +86,7 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     flushButton = new QPushButton("刷新列表", this);
     flushButton->setMinimumHeight(60);
     btnArea->addWidget(flushButton);
+    setDeviceConnectionFlag(false);
     connect(flushButton, SIGNAL(clicked()), this, SLOT(flushNetworkSlot()));
 
     //  将串口选择部分和按钮部分分别加入到ctrlArea中
@@ -279,6 +267,18 @@ void VisibleNetwork::flushNetworkSlot() {
      *  刷新network list，但是这个函数只有在设备已经正确连接之后才可以被调用
      *  如果设备没有正确连接，点击这个按钮则弹出相关提示。
      */
+
+    if (serial->isOpen()) {
+        connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+#if DEBUG == 1
+        timer->start(5000);
+#else
+        timer->start(500);
+#endif //DEBUG == 1
+
+        //  询问设备是否被正确连接
+        serial->write("visibleNetwork|1");
+    }
 }
 
 void VisibleNetwork::parseResult(QString result) {
@@ -368,6 +368,7 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
             qDebug() << __FILE__ << __LINE__ << "clear all WifiItem";
 #endif
             wifiObjList.clear();
+            tempList_QList.clear();
             WifiItem *p=static_cast<WifiItem*>(networkListLayout->itemAt(0)->widget());
             disconnect(p, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
             disconnect(p, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
@@ -477,7 +478,7 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
             //  设备没有链接网络
 
         }
-
+        this->setDeviceConnectionFlag(true);
     }
 }
 
@@ -519,4 +520,29 @@ void VisibleNetwork::timeoutSlot() {
     disconnect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
     timer->stop();
 
+    QMessageBox::about(NULL, "Error", "返回超时，请检查设备连接");
+    setDeviceConnectionFlag(false);
+    netWorkInfo->setText("<span style=\"color:#617bac; font-size: 20px; font-weight: bold;\">"
+                         "暂无网络信息</span>");
+    //  首先清空布局
+    while(networkListLayout->count())
+    {
+#if DEBUG == 1
+        qDebug() << __FILE__ << __LINE__ << "clear all WifiItem";
+#endif
+        wifiObjList.clear();
+        tempList_QList.clear();
+        WifiItem *p=static_cast<WifiItem*>(networkListLayout->itemAt(0)->widget());
+        disconnect(p, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+        disconnect(p, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
+        p->setParent (nullptr);
+        this->networkListLayout->removeWidget(p);
+        delete p;
+    }
+
+}
+
+void VisibleNetwork::setDeviceConnectionFlag(bool flag) {
+    flushButton->setEnabled(flag);
+    m_deviceConnectionFlag = flag;
 }
