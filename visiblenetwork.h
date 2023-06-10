@@ -36,8 +36,11 @@ public:
     QComboBox *serial_cb;       //  选择串口的下拉框
     ClickLabel *flushLab;
 
+#if DEBUG == 1
     WifiItem *item[5];
+#endif
     WifiItem *tempList[5];
+    QList<WifiItem*> tempList_QList;
 
     QVBoxLayout *networkListLayout;
     QVBoxLayout *infoLayout;

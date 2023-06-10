@@ -55,6 +55,7 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     infoLayout->addWidget(textLab[3]);
     infoLayout->addWidget(textLab[4]);
 
+
     netWorkInfo->setObjectName("network-info");
     netWorkInfo->setStyleSheet("QLabel#network-info{background:rgb(255, 255, 255); "
                                "border: 1px #e7e7f1 solid;"
@@ -189,12 +190,14 @@ void VisibleNetwork::expansionSlot(int index) {
 #if DEBUG == 1
             qDebug() <<__FILE__ << __LINE__ << "expansionSlot,i==index" << i;
 #endif //DEBUG == 1
-            tempList[i]->setExpansion();
+            // tempList[i]->setExpansion();
+            tempList_QList.at(i)->setExpansion();
         } else {
 #if DEBUG == 1
             qDebug() <<__FILE__ << __LINE__ << "expansionSlot,i!=index" << i;
 #endif //DEBUG == 1
-            tempList[i]->setFold();
+            // tempList[i]->setFold();
+            tempList_QList.at(i)->setFold();
         }
     }
 }
@@ -384,11 +387,16 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
                                               item[MAC]
                                               )));
 
-            tempList[i] = new WifiItem(i, (wifiObjList.at(i)), networkList);
+            tempList_QList.append(new WifiItem(i, (wifiObjList.at(i)), networkList));
+            // tempList[i] = new WifiItem(i, (wifiObjList.at(i)), networkList);
 
-            networkListLayout->addWidget(tempList[i]);
-            connect(tempList[i], SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-            connect(tempList[i], SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
+            networkListLayout->addWidget(tempList_QList.at(i));
+            connect(tempList_QList.at(i), SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+            connect(tempList_QList.at(i), SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
+
+//            networkListLayout->addWidget(tempList[i]);
+//            connect(tempList[i], SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+//            connect(tempList[i], SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
 
         }
 
@@ -444,12 +452,18 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
 
                     //  修改网络列表，将已连接的网络的按钮改为断开连接
                     //static_cast<WifiItem>((networkListLayout->itemAt(i)->widget())).setButtonText("断开连接");
+                    //tempList[i]->setButtonText("断开连接");
+                    tempList_QList.at(i)->setButtonText("断开连接");
                 }
                 i++;
             }
 #if DEBUG == 1
             qDebug() << __FILE__ << __LINE__ << "end change QLabel";
 #endif //DEBUG == 1
+        }
+        else {
+            //  设备没有链接网络
+            this->findChild<QLabel *>("ssid")->setText(QString("网络名称:\t%1").arg(""));
         }
 
     }

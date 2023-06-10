@@ -163,7 +163,6 @@ void WifiItem::mouseReleaseEvent(QMouseEvent *ev)
 
 void WifiItem::ctrlClickSlot() {
     emit clickConnect(this->getButtonText(), getIndex());
-    qDebug()<<__FILE__ << __LINE__   << this->getButtonText() << " row:155";
 }
 
 
