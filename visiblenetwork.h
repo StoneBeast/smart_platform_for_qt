@@ -37,6 +37,8 @@ public:
     ClickLabel *flushLab;
 
     WifiItem *item[5];
+    WifiItem *tempList[5];
+
     QVBoxLayout *networkListLayout;
     QVBoxLayout *infoLayout;
 

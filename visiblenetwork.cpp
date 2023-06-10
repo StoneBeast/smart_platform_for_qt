@@ -349,6 +349,9 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
                 //  首先清空布局
                 while(networkListLayout->count())
                 {
+#if DEBUG == 1
+                    qDebug() << __FILE__ << __LINE__ << "clear all WifiItem";
+#endif
                     wifiObjList.clear();
                     WifiItem *p=static_cast<WifiItem*>(networkListLayout->itemAt(0)->widget());
                     disconnect(p, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
@@ -371,11 +374,11 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
                                                       item[MAC]
                                                       )));
 
-                    WifiItem *temp = new WifiItem(i, (wifiObjList.at(i)));
+                    tempList[i] = new WifiItem(i, (wifiObjList.at(i)), networkList);
 
-                    networkListLayout->addWidget(temp);
-                    connect(temp, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-                    connect(temp, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
+                    networkListLayout->addWidget(tempList[i]);
+                    connect(tempList[i], SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
+                    connect(tempList[i], SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
                 }
 
 #if DEBUG == 1
