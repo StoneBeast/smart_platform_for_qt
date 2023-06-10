@@ -36,8 +36,10 @@ public:
     SerialUtil *serial;         //  串口成员
     QComboBox *serial_cb;       //  选择串口的下拉框
     ClickLabel *flushLab;
-    bool deviceConnectionFlag() { return m_deviceConnectionFlag; }
-    void setDeviceConnectionFlag(bool);
+    bool deviceConnectionFlag() { return m_deviceConnectionFlag; }  //  获取设备连接状态
+    void setDeviceConnectionFlag(bool);                             //  设置设备连接状态
+    bool networkConnectionFlag() { return m_networkConnectionFlag; }//  获取网络连接状态
+    void setNetworkConnectionFlag(bool);                            //  设置网络连接状态
 
 #if DEBUG == 1
     WifiItem *item[5];
@@ -53,7 +55,7 @@ public:
     enum WifiItemArgIndex { SSID, ECN, RSSI, MAC };
     enum NetworkInfoIndex {IS_CONNECTION, IP, INFO_MAC, IS_INTERNTER};
 
-private:   
+private:
     void initNetworkList(); //  初始化网络连接列表
     void initSerial_cb(QComboBox *cb);  //  初始化串口选择下拉框
     void initNetInfo(); //  初始化网络信息
@@ -62,6 +64,8 @@ private:
     void handleGetNetworkList(QStringList s);    //  get network list
     void handleGetNetworkStatus(QStringList s); //  get network status
     bool m_deviceConnectionFlag;
+    bool m_networkConnectionFlag;
+
 
 
 private slots:

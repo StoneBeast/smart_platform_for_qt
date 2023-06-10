@@ -1,9 +1,11 @@
 #include "visiblenetwork.h"
 
-/*
- *
- * 如果出现不能打开串口相关的问题，需要再调用一次扫描串口函数
- *
+/*TODO
+ *  如果出现不能打开串口相关的问题，需要再调用一次扫描串口函数
+ *  下一步需要做出断开连接的操作
+ *  连接的操作，注意连接时要判断是不是已经连接了网络，如果是要先执行相应的操作再执行连接操作
+ *  输入框，调用虚拟键盘
+ *  过场加载动画
  */
 
 VisibleNetwork::VisibleNetwork(QWidget *parent)
@@ -40,9 +42,7 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     QVBoxLayout *rightBox = new QVBoxLayout(this);
 
     //  添加网络信息组件
-    netWorkInfo = new QLabel(
-        "<span style=\"color:#617bac; font-size: 20px; font-weight: bold;\">"
-        "暂无网络信息</span>");
+    netWorkInfo = new QLabel();
 
     netWorkInfo->setObjectName("network-info");
     netWorkInfo->setStyleSheet("QLabel#network-info{background:rgb(255, 255, 255); "
@@ -50,6 +50,7 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
                                "border-radius: 8px;"
                                "}");
     netWorkInfo->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    setNetworkConnectionFlag(false);
     rightBox->addWidget(netWorkInfo);
 
     //  下方控制区域使用垂直布局
@@ -206,7 +207,7 @@ void VisibleNetwork::flushSerialSlot() {
 
 void VisibleNetwork::connectSlot(QString text, int index) {
 #if DEBUG == 1
-    qDebug() <<__FILE__ << __LINE__  << text << " connect!!!!! row:168" << index;
+    qDebug() <<__FILE__ << __LINE__  << text << " connect!!!!!" << index;
 #endif //DEBUG == 1
     //  do connection...
     /*
@@ -214,6 +215,11 @@ void VisibleNetwork::connectSlot(QString text, int index) {
      * 添加连接成功信号，在对应的槽函数中填写 network into中的相关信息
      * 同时wifiitem上的连接按钮变为断开连接
      */
+    if (text == "连接") {
+        //  执行连接网络的操作，同时也要检擦当前有没有连接其他网络，如果有，则要先执行断开网络的操作
+    } else {
+        //  执行断开网络的操作
+    }
 }
 
 void VisibleNetwork::checkConnectionSlot() {
@@ -424,13 +430,14 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
      *  {true%192.168.1.1%ac:bb:3a:44%false}
      */
 
-//  TODO: 显示数据的标签样式需要修改，修改按钮的状态，网络信息的呈现方式，比如信号强度不能是数据，而应该是 ‘很强’ 这种形容词
 #if DEBUG == 1
     qDebug() << __FILE__ << __LINE__ << "get network status";
 #endif //DEBUG == 1
     if (s[2] == "OK") {
         QStringList temp_networkInfo = s[3].split('%');
         if (temp_networkInfo[IS_CONNECTION] == "true") {
+
+            setNetworkConnectionFlag(true);
 
 #if DEBUG == 1
             qDebug() << __FILE__ << __LINE__ << "begin change QLabel";
@@ -476,6 +483,7 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
         }
         else {
             //  设备没有链接网络
+            setNetworkConnectionFlag(false);
 
         }
         this->setDeviceConnectionFlag(true);
@@ -522,8 +530,7 @@ void VisibleNetwork::timeoutSlot() {
 
     QMessageBox::about(NULL, "Error", "返回超时，请检查设备连接");
     setDeviceConnectionFlag(false);
-    netWorkInfo->setText("<span style=\"color:#617bac; font-size: 20px; font-weight: bold;\">"
-                         "暂无网络信息</span>");
+    setNetworkConnectionFlag(false);
     //  首先清空布局
     while(networkListLayout->count())
     {
@@ -545,4 +552,12 @@ void VisibleNetwork::timeoutSlot() {
 void VisibleNetwork::setDeviceConnectionFlag(bool flag) {
     flushButton->setEnabled(flag);
     m_deviceConnectionFlag = flag;
+}
+
+void VisibleNetwork::setNetworkConnectionFlag(bool flag) {
+    if(!flag) {
+        netWorkInfo->setText("<span style=\"color:#617bac; font-size: 20px; font-weight: bold;\">"
+                             "暂无网络信息</span>");
+    }
+    m_networkConnectionFlag = flag;
 }
