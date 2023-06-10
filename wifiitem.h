@@ -27,6 +27,8 @@ public:
     int getIndex() { return index; }
     void setButtonText(QString text) { ctrlButton->setText(text); }
     QString getButtonText() { return ctrlButton->text(); }
+    static QString getEcn(int ecn);
+    static QString getRssiStr(int rssi);
 
 private:
     int index;      //index
@@ -36,7 +38,6 @@ private:
     QString mac;        //  mac地址
     QIcon rssiIcon; //  信号强度图标
     QString setWifiIcon(int ecn, int rssi);
-    QString getEcn(int ecn);
     QPushButton *ctrlButton;  //连接按钮
 
 

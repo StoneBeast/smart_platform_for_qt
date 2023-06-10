@@ -12,7 +12,7 @@ WifiItem::WifiItem(QWidget *parent)
 WifiItem::WifiItem(int index, WifiObj obj, QWidget *parent)
     : QWidget{parent}, index(index), ssid(obj.ssid()),
       ecn(obj.ecn()), rssi(obj.rssi()), mac(obj.mac())
-{
+{   
     this->setAttribute(Qt::WA_StyledBackground, true);
     this->setObjectName("wifi-item");
     this->setStyleSheet("QWidget#wifi-item{border :2px solid #d3d3e6;}"
@@ -165,4 +165,9 @@ void WifiItem::ctrlClickSlot() {
     emit clickConnect(this->getButtonText(), getIndex());
 }
 
+QString WifiItem::getRssiStr(int rssi) {
+    // rssi: 很弱、弱、一般、较强、很强
+    QString rssiArr[] = { "很弱", "弱", "一般", "较强", "很强" };
 
+    return rssiArr[rssi/20];
+}

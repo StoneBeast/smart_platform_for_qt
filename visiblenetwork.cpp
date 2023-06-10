@@ -34,33 +34,35 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
     QVBoxLayout *rightBox = new QVBoxLayout(this);
 
     //  添加网络信息组件
-    netWorkInfo = new QLabel(this);
-    infoLayout = new QVBoxLayout(this);
-    netWorkInfo->setLayout(infoLayout);
-    QLabel *textLab[5];
-    textLab[0] = new QLabel("网络名称:");
-    textLab[0]->setObjectName("ssid");
-    textLab[1] = new QLabel("IP地址:");
-    textLab[1]->setObjectName("ip");
-    textLab[2] = new QLabel("信号强度:");
-    textLab[2]->setObjectName("rssi");
-    textLab[3] = new QLabel("加密格式:");
-    textLab[3]->setObjectName("ecn");
-    textLab[4] = new QLabel("是否连接互联网:");
-    textLab[4]->setObjectName("isInternet");
+    netWorkInfo = new QLabel(
+        "<span style=\"color:#617bac; font-size: 20px; font-weight: bold;\">"
+        "暂无网络信息</span>");
+//    infoLayout = new QVBoxLayout(this);
+//    netWorkInfo->setLayout(infoLayout);
+//    QLabel *textLab[5];
+//    textLab[0] = new QLabel("<span style=\"color:#617bac\">网络名称: </span>");
+//    textLab[0]->setObjectName("ssid");
+//    textLab[1] = new QLabel("<span style=\"color:#617bac\">IP地址: </span>");
+//    textLab[1]->setObjectName("ip");
+//    textLab[2] = new QLabel("<span style=\"color:#617bac\">信号强度: </span>");
+//    textLab[2]->setObjectName("rssi");
+//    textLab[3] = new QLabel("<span style=\"color:#617bac\">加密格式: </span>");
+//    textLab[3]->setObjectName("ecn");
+//    textLab[4] = new QLabel("<span style=\"color:#617bac\">是否连接互联网: </span>");
+//    textLab[4]->setObjectName("isInternet");
 
-    infoLayout->addWidget(textLab[0]);
-    infoLayout->addWidget(textLab[1]);
-    infoLayout->addWidget(textLab[2]);
-    infoLayout->addWidget(textLab[3]);
-    infoLayout->addWidget(textLab[4]);
-
+//    infoLayout->addWidget(textLab[0]);
+//    infoLayout->addWidget(textLab[1]);
+//    infoLayout->addWidget(textLab[2]);
+//    infoLayout->addWidget(textLab[3]);
+//    infoLayout->addWidget(textLab[4]);
 
     netWorkInfo->setObjectName("network-info");
     netWorkInfo->setStyleSheet("QLabel#network-info{background:rgb(255, 255, 255); "
                                "border: 1px #e7e7f1 solid;"
                                "border-radius: 8px;"
                                "}");
+    netWorkInfo->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     rightBox->addWidget(netWorkInfo);
 
     //  下方控制区域使用垂直布局
@@ -394,10 +396,6 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
             connect(tempList_QList.at(i), SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
             connect(tempList_QList.at(i), SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
 
-//            networkListLayout->addWidget(tempList[i]);
-//            connect(tempList[i], SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-//            connect(tempList[i], SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
-
         }
 
 #if DEBUG == 1
@@ -440,19 +438,33 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
             int i = 0;
             foreach (WifiObj obj, wifiObjList) {
                 if (obj.mac() == temp_networkInfo[INFO_MAC]) {
-#if DEBUG == 1
-                    qDebug() << __FILE__ << __LINE__ << this->findChild<QLabel *>("ssid")->text();
-#endif //DEBUG == 1
+                    //  信号强度、加密格式、是否访问互联网
+                    QString isInternetLab = (temp_networkInfo[IS_INTERNTER] == "false" ? "无法访问":"可以访问");
 
-                    this->findChild<QLabel *>("ssid")->setText(QString("网络名称:\t%1").arg(obj.ssid()));
-                    this->findChild<QLabel *>("ip")->setText(QString("IP地址:\t%1").arg(temp_networkInfo[IP]));
-                    this->findChild<QLabel *>("rssi")->setText(QString("信号强度:\t%1").arg(obj.rssi()));
-                    this->findChild<QLabel *>("ecn")->setText(QString("加密格式:\t%1").arg(obj.ecn()));
-                    this->findChild<QLabel *>("isInternet")->setText(QString("是否连接互联网:\t%1").arg(temp_networkInfo[IS_INTERNTER]));
+                    this->findChild<QLabel *>("network-info")->setText(QString("<table style=\"font-size:16px\" align=\"center\" cellspacing=\"18\">"
+                                                                       "<tr > "
+                                                                            "<td >网络名称</td>"
+                                                                            "<td style=\"color: #646464\">%1</td>"
+                                                                       "</tr>"
+                                                                       "<tr> "
+                                                                            "<td>IP地址</td>"
+                                                                            "<td style=\"color: #646464\">%2</td>"
+                                                                       "</tr>"
+                                                                       "<tr> "
+                                                                            "<td>信号强度</td>"
+                                                                            "<td style=\"color: #646464\">%3</td>"
+                                                                       "</tr>"
+                                                                       "<tr> "
+                                                                            "<td>加密格式</td>"
+                                                                            "<td style=\"color: #646464\">%4</td>"
+                                                                       "</tr>"
+                                                                       "<tr> "
+                                                                            "<td>访问互联网</td>"
+                                                                            "<td style=\"color: #646464\">%5</td>"
+                                                                       "</tr>"
+                                                                               "</table>").arg(obj.ssid(), temp_networkInfo[IP], WifiItem::getRssiStr(obj.rssi()), WifiItem::getEcn(obj.ecn()), isInternetLab));
 
-                    //  修改网络列表，将已连接的网络的按钮改为断开连接
-                    //static_cast<WifiItem>((networkListLayout->itemAt(i)->widget())).setButtonText("断开连接");
-                    //tempList[i]->setButtonText("断开连接");
+
                     tempList_QList.at(i)->setButtonText("断开连接");
                 }
                 i++;
@@ -463,7 +475,7 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
         }
         else {
             //  设备没有链接网络
-            this->findChild<QLabel *>("ssid")->setText(QString("网络名称:\t%1").arg(""));
+
         }
 
     }
