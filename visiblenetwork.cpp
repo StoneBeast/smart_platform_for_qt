@@ -214,11 +214,34 @@ void VisibleNetwork::connectSlot(QString text, int index) {
      * 基本实现思路：通过串口发送约定好的数据，连接
      * 添加连接成功信号，在对应的槽函数中填写 network into中的相关信息
      * 同时wifiitem上的连接按钮变为断开连接
+     *
+     *  command format:
+     *      {visibleNetwork|4}
+     *
+     *  response format:
+     *      {visibleNetwork|4|OK}
      */
     if (text == "连接") {
         //  执行连接网络的操作，同时也要检擦当前有没有连接其他网络，如果有，则要先执行断开网络的操作
+
     } else {
         //  执行断开网络的操作
+        if (serial->isOpen()) {
+            connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+#if DEBUG == 1
+            timer->start(5000);
+#else
+            timer->start(500);
+#endif //DEBUG == 1
+
+
+            serial->write("visibleNetwork|4");
+
+        } else {
+            //  串口没有被打开
+            handleCanntOprnSerial();
+        }
+
     }
 }
 
@@ -258,7 +281,13 @@ void VisibleNetwork::checkConnectionSlot() {
 #endif //DEBUG == 1
 
         //  询问设备是否被正确连接
-        serial->write("visibleNetwork|0");
+        if (serial->isOpen()) {
+            serial->write("visibleNetwork|0");
+        }   else {
+            //  串口没有被打开
+            handleCanntOprnSerial();
+        }
+
     }
 
 
@@ -266,7 +295,7 @@ void VisibleNetwork::checkConnectionSlot() {
 
 void VisibleNetwork::flushNetworkSlot() {
 #if DEBUG == 1
-    qDebug()<<__FILE__ << __LINE__  << "flush list row: 176";
+    qDebug()<<__FILE__ << __LINE__  << "flush list";
 #endif //DEBUG == 1
     //  do flush list and instand of the old
     /*
@@ -282,8 +311,12 @@ void VisibleNetwork::flushNetworkSlot() {
         timer->start(500);
 #endif //DEBUG == 1
 
-        //  询问设备是否被正确连接
+
         serial->write("visibleNetwork|1");
+
+    } else {
+        //  串口没有被打开
+        handleCanntOprnSerial();
     }
 }
 
@@ -299,6 +332,7 @@ void VisibleNetwork::parseResult(QString result) {
      *          0: is device connect
      *          1: get network list
      *          2: get device network status
+     *          4: disconnect network
      * status:
      *          OK
      *          ERROR
@@ -314,19 +348,24 @@ void VisibleNetwork::parseResult(QString result) {
             handleCheckDevice(resultList);
             break;
         case 1:
+            //  get network list
 #if DEBUG == 1
             qDebug()<<__FILE__ << __LINE__  << "handleGetNetworkList";
 #endif //DEBUG == 1
             handleGetNetworkList(resultList);
-            //  get network list
+
             break;
         case 2:
+            //  get device network status
 #if DEBUG == 1
             qDebug()<<__FILE__ << __LINE__  << "handleGetNetworkStatus";
 #endif //DEBUG == 1
             handleGetNetworkStatus(resultList);
-            //  get device network status
+
             break;
+        case 4:
+            //  disconnecet network
+            handleDisconnect(resultList);
         default :
             // error
             break;
@@ -341,11 +380,14 @@ void VisibleNetwork::handleCheckDevice(QStringList s) {
 
     if (s[2] == "OK") {
         //  设备正常连接，开始获取网络列表
-
-        connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
-        //  扫描wifi时间较长
-        timer->start(5000);
-        serial->write("visibleNetwork|1");
+        if (serial->isOpen()) {
+            connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+            //  扫描wifi时间较长
+            timer->start(5000);
+            serial->write("visibleNetwork|1");
+        }   else {
+            handleCanntOprnSerial();
+        }
 
     }
 }
@@ -397,7 +439,6 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
                                               )));
 
             tempList_QList.append(new WifiItem(i, (wifiObjList.at(i)), networkList));
-            // tempList[i] = new WifiItem(i, (wifiObjList.at(i)), networkList);
 
             networkListLayout->addWidget(tempList_QList.at(i));
             connect(tempList_QList.at(i), SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
@@ -408,14 +449,19 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
 #if DEBUG == 1
         qDebug() << __FILE__ << __LINE__ << "end of add all widget";
 #endif
-
-        // 获取成功，开始获取网络状态
-        connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
-        timer->start(3000);
+        if (serial->isOpen()) {
+            // 获取成功，开始获取网络状态
+            connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+            timer->start(3000);
 #if DEBUG == 1
-        qDebug() << __FILE__ << __LINE__ << "timer start";
+            qDebug() << __FILE__ << __LINE__ << "timer start";
 #endif
-        serial->write("visibleNetwork|2");
+
+            serial->write("visibleNetwork|2");
+        }   else {
+            //  串口没有被打开
+            handleCanntOprnSerial();
+        }
     }
 }
 
@@ -490,6 +536,19 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
     }
 }
 
+void VisibleNetwork::handleDisconnect(QStringList s) {
+    if (s[2] == "OK") {
+        if (serial->isOpen()) {
+            connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+            //  扫描wifi时间较长
+            timer->start(5000);
+            serial->write("visibleNetwork|2");
+        }   else {
+            handleCanntOprnSerial();
+        }
+    }
+}
+
 // must add timeout signal
 void VisibleNetwork::readyReadSlot() {
 #if DEBUG == 1
@@ -558,6 +617,25 @@ void VisibleNetwork::setNetworkConnectionFlag(bool flag) {
     if(!flag) {
         netWorkInfo->setText("<span style=\"color:#617bac; font-size: 20px; font-weight: bold;\">"
                              "暂无网络信息</span>");
+        foreach (WifiItem *item, tempList_QList) {
+            if (item->getButtonText() == "断开连接") {
+                item->setButtonText("连接");
+            }
+        }
     }
     m_networkConnectionFlag = flag;
+}
+
+void VisibleNetwork::handleCanntOprnSerial() {
+    //  解除信号连接
+    disconnect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot));
+
+    //  停止定时器，防止超时
+    timer->stop();
+
+    //  弹出提示
+    QMessageBox::about(NULL, "Error", "无法打开串口");
+
+    //  重新扫描串口
+    serial->scanSerial();
 }
