@@ -223,6 +223,23 @@ void VisibleNetwork::connectSlot(QString text, int index) {
      */
     if (text == "连接") {
         //  执行连接网络的操作，同时也要检擦当前有没有连接其他网络，如果有，则要先执行断开网络的操作
+        QString password = "";
+        if (wifiObjList.at(index).ecn()) {
+            //  有加密
+            QString dlgTitle=QString("连接到%1").arg(wifiObjList.at(index).ssid());//对话框标题
+            QString txtLabel=QStringLiteral("输入密码:");//对话框Label显示内容
+            QLineEdit::EchoMode echoMode=QLineEdit::Normal;//输入框的文本内容为正常显示
+            password=QInputDialog::getText(this,dlgTitle,txtLabel,echoMode);
+#if DEBUG == 1
+            qDebug() << __FILE__ << __LINE__ << "connecd with: " << password;
+#endif
+        }
+
+
+        if (this->networkConnectionFlag()) {
+
+
+        }
 
     } else {
         //  执行断开网络的操作
@@ -288,6 +305,8 @@ void VisibleNetwork::checkConnectionSlot() {
             handleCanntOprnSerial();
         }
 
+    } else {
+        handleCanntOprnSerial();
     }
 
 

@@ -18,6 +18,7 @@
 #include "clicklabel.h"
 #include <QTimer>
 #include <QMessageBox>
+#include <QInputDialog>
 
 #define DEBUG 1
 
