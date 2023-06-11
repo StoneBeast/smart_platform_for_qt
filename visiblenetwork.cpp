@@ -215,6 +215,14 @@ void VisibleNetwork::connectSlot(QString text, int index) {
      * 添加连接成功信号，在对应的槽函数中填写 network into中的相关信息
      * 同时wifiitem上的连接按钮变为断开连接
      *
+     * 连接网络
+     * command format:
+     *      visibleNetwork|3|<ssid>&<password>
+     *       eg:   visibleNetwork|3|stone&123456
+     * response format:
+     *      {visibleNetwork|3|<status>}
+     *
+     * 断开连接
      *  command format:
      *      {visibleNetwork|4}
      *
@@ -224,6 +232,7 @@ void VisibleNetwork::connectSlot(QString text, int index) {
     if (text == "连接") {
         //  执行连接网络的操作，同时也要检擦当前有没有连接其他网络，如果有，则要先执行断开网络的操作
         QString password = "";
+        bool confirmFlag = true;
         if (wifiObjList.at(index).ecn()) {
             //  有加密
             QString dlgTitle=QString("连接到%1").arg(wifiObjList.at(index).ssid());//对话框标题
@@ -233,11 +242,22 @@ void VisibleNetwork::connectSlot(QString text, int index) {
 #if DEBUG == 1
             qDebug() << __FILE__ << __LINE__ << "connecd with: " << password;
 #endif
+            if (password.isEmpty()) {
+                confirmFlag = false;
+            }
         }
 
+        if (confirmFlag) {
 
-        if (this->networkConnectionFlag()) {
 
+            connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+#if DEBUG == 1
+            timer->start(5000);
+#else
+            timer->start(500);
+#endif
+            setNetworkConnectionFlag(false);
+            serial->write((QString("visibleNetwork|3|%1&%2").arg(wifiObjList.at(index).ssid(), password)).toUtf8());
 
         }
 
@@ -250,7 +270,6 @@ void VisibleNetwork::connectSlot(QString text, int index) {
 #else
             timer->start(500);
 #endif //DEBUG == 1
-
 
             serial->write("visibleNetwork|4");
 
@@ -380,7 +399,13 @@ void VisibleNetwork::parseResult(QString result) {
             qDebug()<<__FILE__ << __LINE__  << "handleGetNetworkStatus";
 #endif //DEBUG == 1
             handleGetNetworkStatus(resultList);
-
+            break;
+        case 3:
+            //  connect to network
+#if DEBUG == 1
+            qDebug()<<__FILE__ << __LINE__  << "handleGetNetworkStatus";
+#endif //DEBUG == 1
+            handleConnectNetwork(resultList);
             break;
         case 4:
             //  disconnecet network
@@ -552,6 +577,19 @@ void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
 
         }
         this->setDeviceConnectionFlag(true);
+    }
+}
+
+void VisibleNetwork::handleConnectNetwork(QStringList s) {
+    if (s[2] == "OK") {
+        if (serial->isOpen()) {
+            connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
+            //  扫描wifi时间较长
+            timer->start(5000);
+            serial->write("visibleNetwork|2");
+        }   else {
+            handleCanntOprnSerial();
+        }
     }
 }
 

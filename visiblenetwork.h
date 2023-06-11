@@ -65,6 +65,8 @@ private:
     void handleGetNetworkList(QStringList s);    //  get network list
     void handleGetNetworkStatus(QStringList s); //  get network status
     void handleDisconnect(QStringList s);       //  disconnect network
+    void handleConnectNetwork(QStringList s);   //  连接网络
+    void handleChangeNetwork(QStringList s);    //  更改网络连接
     bool m_deviceConnectionFlag;
     bool m_networkConnectionFlag;
     void handleCanntOprnSerial();
