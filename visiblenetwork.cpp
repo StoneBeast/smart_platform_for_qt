@@ -612,12 +612,12 @@ void VisibleNetwork::readyReadSlot() {
     qDebug() << __FILE__ << __LINE__ << "ready read";
 #endif //DEBUG == 1
 
-    //  接收到信号停止定时器，防止发出超时信号
-    timer->stop();
-
     serialBuf += serial->readAll();
 
-    if (serialBuf.startsWith('{') && serialBuf.endsWith('}')) {
+    if (serialBuf.startsWith('{') && serialBuf.endsWith("}\r\n")) {
+        //  接收到信号停止定时器，防止发出超时信号
+        timer->stop();
+
 #if DEBUG == 1
         qDebug() << __FILE__ << __LINE__ << "isEnd?" << serial->atEnd();
 #endif //DEBUG == 1
@@ -628,7 +628,7 @@ void VisibleNetwork::readyReadSlot() {
 #endif //DEBUG == 1
 
         serialBuf.remove(0, 1);
-        serialBuf.remove(serialBuf.length() - 1, 1);
+        serialBuf.remove(serialBuf.length() - 3, 3);
 
         parseResult(QString(serialBuf));
 
