@@ -257,7 +257,7 @@ void VisibleNetwork::connectSlot(QString text, int index) {
             timer->start(500);
 #endif
             setNetworkConnectionFlag(false);
-            serial->write((QString("visibleNetwork|3|%1&%2").arg(wifiObjList.at(index).ssid(), password)).toUtf8());
+            serial->write((QString("visibleNetwork|3|%1&%2\r\n").arg(wifiObjList.at(index).ssid(), password)).toUtf8());
 
         }
 
@@ -271,7 +271,7 @@ void VisibleNetwork::connectSlot(QString text, int index) {
             timer->start(500);
 #endif //DEBUG == 1
 
-            serial->write("visibleNetwork|4");
+            serial->write("visibleNetwork|4\r\n");
 
         } else {
             //  串口没有被打开
@@ -318,7 +318,7 @@ void VisibleNetwork::checkConnectionSlot() {
 
         //  询问设备是否被正确连接
         if (serial->isOpen()) {
-            serial->write("visibleNetwork|0");
+            serial->write("visibleNetwork|0\r\n");
         }   else {
             //  串口没有被打开
             handleCanntOprnSerial();
@@ -350,7 +350,7 @@ void VisibleNetwork::flushNetworkSlot() {
 #endif //DEBUG == 1
 
 
-        serial->write("visibleNetwork|1");
+        serial->write("visibleNetwork|1\r\n");
 
     } else {
         //  串口没有被打开
@@ -428,7 +428,7 @@ void VisibleNetwork::handleCheckDevice(QStringList s) {
             connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
             //  扫描wifi时间较长
             timer->start(5000);
-            serial->write("visibleNetwork|1");
+            serial->write("visibleNetwork|1\r\n");
         }   else {
             handleCanntOprnSerial();
         }
@@ -501,7 +501,7 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
             qDebug() << __FILE__ << __LINE__ << "timer start";
 #endif
 
-            serial->write("visibleNetwork|2");
+            serial->write("visibleNetwork|2\r\n");
         }   else {
             //  串口没有被打开
             handleCanntOprnSerial();
@@ -586,7 +586,7 @@ void VisibleNetwork::handleConnectNetwork(QStringList s) {
             connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
             //  扫描wifi时间较长
             timer->start(5000);
-            serial->write("visibleNetwork|2");
+            serial->write("visibleNetwork|2\r\n");
         }   else {
             handleCanntOprnSerial();
         }
@@ -599,7 +599,7 @@ void VisibleNetwork::handleDisconnect(QStringList s) {
             connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
             //  扫描wifi时间较长
             timer->start(5000);
-            serial->write("visibleNetwork|2");
+            serial->write("visibleNetwork|2\r\n");
         }   else {
             handleCanntOprnSerial();
         }
