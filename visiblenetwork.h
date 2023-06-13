@@ -53,7 +53,10 @@ public:
     QList<WifiObj> wifiObjList;         // 存放所有网络wifi的信息的list
     QList<WifiItem*> tempList_QList;    // 存放networkList中的所有 WifiItem对象的指针
 
-    enum WifiItemArgIndex { SSID, ECN, RSSI, MAC };
+    // 3,"x",-80,"ca:55:93:e3:a5:c8"
+
+    // enum WifiItemArgIndex { SSID, ECN, RSSI, MAC };
+    enum WifiItemArgIndex { ECN, SSID, RSSI, MAC };
     enum NetworkInfoIndex {IS_CONNECTION, IP, INFO_MAC, IS_INTERNTER};
 
 private:

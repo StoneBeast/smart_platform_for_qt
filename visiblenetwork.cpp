@@ -6,6 +6,9 @@
  *  连接的操作，注意连接时要判断是不是已经连接了网络，如果是要先执行相应的操作再执行连接操作
  *  输入框，调用虚拟键盘
  *  过场加载动画
+ *  获取ap列表数据过长，由上位机程序处理
+ *
+ *  连接wifi还有问题，需要修复
  */
 
 VisibleNetwork::VisibleNetwork(QWidget *parent)
@@ -107,40 +110,6 @@ VisibleNetwork::VisibleNetwork(QWidget *parent)
 
     this->setLayout(mainLayout);
 
-
-#if DEBUG == 1
-#if 0
-    WifiItem *item1 = new WifiItem(0, *(new WifiObj("test", 0, 21, "ac:2d:dd:41:21:as")), networkList);
-    WifiItem *item2 = new WifiItem(1, *(new WifiObj("hello", 3, 56, "ac:2d:dd:41:21:ad")), networkList);
-    WifiItem *item3 = new WifiItem(2, *(new WifiObj("world", 4, 70, "ac:2d:dd:4c:21:as")), networkList);
-    WifiItem *item4 = new WifiItem(3, *(new WifiObj("azur", 3, 10, "ac:2d:d3:41:21:as")), networkList);
-    WifiItem *item5 = new WifiItem(4, *(new WifiObj("lane", 0, 45, "ac:22:dd:41:21:as")), networkList);
-    item[0] = item1;
-    item[1] = item2;
-    item[2] = item3;
-    item[3] = item4;
-    item[4] = item5;
-
-    networkListLayout->addWidget(item1);
-    networkListLayout->addWidget(item2);
-    networkListLayout->addWidget(item3);
-    networkListLayout->addWidget(item4);
-    networkListLayout->addWidget(item5);
-
-    connect(item1, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-    connect(item2, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-    connect(item3, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-    connect(item4, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-    connect(item5, SIGNAL(clicked(int)), this, SLOT(expansionSlot(int)));
-
-
-    connect(item1, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
-    connect(item2, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
-    connect(item3, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
-    connect(item4, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
-    connect(item5, SIGNAL(clickConnect(QString, int)), this, SLOT(connectSlot(QString, int)));
-#endif
-#endif //DEBUG == 1
 }
 
 //  初始化/刷新串口列表
@@ -252,7 +221,7 @@ void VisibleNetwork::connectSlot(QString text, int index) {
 
             connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
 #if DEBUG == 1
-            timer->start(5000);
+            timer->start(10000);
 #else
             timer->start(500);
 #endif
@@ -370,6 +339,7 @@ void VisibleNetwork::parseResult(QString result) {
      *          0: is device connect
      *          1: get network list
      *          2: get device network status
+     *          3: connetc network
      *          4: disconnect network
      * status:
      *          OK
@@ -403,7 +373,7 @@ void VisibleNetwork::parseResult(QString result) {
         case 3:
             //  connect to network
 #if DEBUG == 1
-            qDebug()<<__FILE__ << __LINE__  << "handleGetNetworkStatus";
+            qDebug()<<__FILE__ << __LINE__  << "handleConnectNetwork";
 #endif //DEBUG == 1
             handleConnectNetwork(resultList);
             break;
@@ -437,6 +407,37 @@ void VisibleNetwork::handleCheckDevice(QStringList s) {
 }
 #if 1
 
+
+/*
+3,"stone",-33,"ca:b2:9b:00:7f:d0"
+
+0,"1-tcu-student",-48,"94:28:2e:e2:3b:d0"
+
+0,"1-tcu-student",-61,"94:28:2e:e2:61:70"
+
+0,"1-tcu-student",-66,"94:28:2e:e2:17:30"
+
+3,"Redmi K20 Pro Premium Edition",-72,"12:15:11:4e:92:91"
+
+0,"1-tcu-student",-73,"94:28:2e:e2:ad:50"
+
+3,"HONOR 30 Lite",-73,"e2:cf:01:08:31:8e"
+
+0,"1-tcu-student",-74,"94:28:2e:e2:0e:50"
+
+3,"24601",-78,"f6:58:a7:14:a5:49"
+
+3,"x",-80,"ca:55:93:e3:a5:c8"
+
+0,"1-tcu-student",-83,"94:28:2e:e2:7c:90"
+
+3,"涓句竴鍙嶄笁",-83,"52:f7:76:32:0f:90"
+
+3,"",-86,"92:47:6d:f9:95:10"
+
+3,"Redmi Note 12 Turbo",-90,"f2:76:70:a8:65:46")
+ */
+
 void VisibleNetwork::handleGetNetworkList(QStringList s) {
     qDebug() << __FILE__ << __LINE__ << "get network list";
     if (s[2] == "OK") {
@@ -446,10 +447,32 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
          * test01%-12%3% ca:ac:24:c5
          */
 
-        QStringList body = s[3].split('&');
+        QStringList _tempList_ = s[3].split('(');
+        _tempList_.removeFirst();
+        QStringList _tempList;
+        _tempList.clear();
+        foreach (QString item, _tempList_) {
+            _tempList.append(item.split(')').at(0));
+        }
+
+        QStringList tempList_;
+        foreach (QString item, _tempList) {
+            item.remove(item.length()-1, 1);    //删除最后的"
+            item = (item.split(',').join('%'));
+
+            int index = item.indexOf('"');
+            while (index != -1) {
+                item.remove(index, 1); // 移除当前要删除的字符
+                index = item.indexOf('"'); // 查找下一个要删除的字符
+            }
+            tempList_.append(item);
+        }
+
+        QStringList body = tempList_;
         int count = body.count();
 
 #if DEBUG == 1
+        qDebug() << __FILE__ << __LINE__ << "body: " << body;
         qDebug() << __FILE__ << __LINE__ << "count: " << count;
 #endif
 
@@ -473,12 +496,17 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
 #if DEBUG == 1
         qDebug() << __FILE__ << __LINE__ << "begin add widget";
 #endif
+#if DEBUG == 1
+        qDebug() << __FILE__ << __LINE__ << "body: " << body;
+#endif
         for (int i=0; i<count; i++) {
             QStringList item = body[i].split('%');
-
+#if DEBUG == 1
+            qDebug() << __FILE__ << __LINE__ << "RSSI: " << item[RSSI].toInt();
+#endif
             wifiObjList.append(*(new WifiObj(item[SSID],
                                               item[ECN].toInt(),
-                                              item[RSSI].toInt(),
+                                             (item[RSSI].toInt()+100),
                                               item[MAC]
                                               )));
 
@@ -496,7 +524,7 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
         if (serial->isOpen()) {
             // 获取成功，开始获取网络状态
             connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
-            timer->start(3000);
+            timer->start(10000);
 #if DEBUG == 1
             qDebug() << __FILE__ << __LINE__ << "timer start";
 #endif
@@ -513,6 +541,8 @@ void VisibleNetwork::handleGetNetworkList(QStringList s) {
 void VisibleNetwork::handleGetNetworkStatus(QStringList s) {
 
     /*
+     *
+     *
      * data format:
      *  isConnection%ip%mac%isInternet
      *          true%192.168.1.1%ad:22:42:54:ad%false
@@ -590,6 +620,8 @@ void VisibleNetwork::handleConnectNetwork(QStringList s) {
         }   else {
             handleCanntOprnSerial();
         }
+    } else {
+        QMessageBox::about(NULL, "Error", "密码错误");
     }
 }
 
