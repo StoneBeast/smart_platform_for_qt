@@ -206,7 +206,7 @@ void VisibleNetwork::connectSlot(QString text, int index) {
             //  有加密
             QString dlgTitle=QString("连接到%1").arg(wifiObjList.at(index).ssid());//对话框标题
             QString txtLabel=QStringLiteral("输入密码:");//对话框Label显示内容
-            QLineEdit::EchoMode echoMode=QLineEdit::Normal;//输入框的文本内容为正常显示
+            QLineEdit::EchoMode echoMode=QLineEdit::Password;//输入框的文本内容为正常显示
             password=QInputDialog::getText(this,dlgTitle,txtLabel,echoMode);
 #if DEBUG == 1
             qDebug() << __FILE__ << __LINE__ << "connecd with: " << password;
