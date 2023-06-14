@@ -615,7 +615,7 @@ void VisibleNetwork::handleConnectNetwork(QStringList s) {
         if (serial->isOpen()) {
             connect(serial, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
             //  扫描wifi时间较长
-            timer->start(5000);
+            timer->start(10000);
             serial->write("visibleNetwork|2\r\n");
         }   else {
             handleCanntOprnSerial();

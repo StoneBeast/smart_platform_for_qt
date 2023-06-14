@@ -19,6 +19,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QMovie>
 
 #define DEBUG 1
 
